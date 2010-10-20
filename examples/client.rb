@@ -13,7 +13,7 @@ Sudo::Wrapper.open('-rfileutils -rsudo/examples/abc') do |su|
 
   ab = A::B.new
 
-  su[ab].c
+  puts su[ab].c
 
   su[FileUtils].cp '/etc/shadow', '/etc/shadow2'
 
