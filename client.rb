@@ -5,27 +5,19 @@ require 'sudo/examples/abc'
 require 'sudo'
 
 
-SERVER_URI="druby://localhost:8787"
+Sudo::Wrapper.open do |su|
 
-DRb.start_service
+  su[File].open '/TEST', 'w' do |f|
+    f.puts "Hello from UID=#{su[Process].uid}!"
+  end
 
-@sudo_proxy = DRbObject.new_with_uri(SERVER_URI)
+  ab = A::B.new
 
-include Sudo::Su
+  puts su[ab].c
 
+  su[FileUtils].cp '/etc/shadow', '/etc/shadow2'
 
- 
-su(File).open '/TEST', 'w' do |f|
-  f.puts "Hello from UID=#{su(Process).uid}!"
 end
-
-ab = A::B.new
-
-puts su(ab).c
-
-su(FileUtils).cp '/etc/shadow', '/etc/shadow2'
-
-
 
 
 
