@@ -6,7 +6,7 @@ Based on dRuby and sudo.
 
 = Author
 
-Copyright(C) 2010, Guido De Rosa <mailto:guido.derosa@vemarsas.it>
+Copyright(C) 2010, Guido De Rosa <guido.derosa vemarsas.it>
 
 = License
 
