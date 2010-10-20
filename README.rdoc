@@ -1,0 +1,17 @@
+= RubySU
+
+Give Ruby onìbjects speruser privileges.
+
+Based on dRuby and sudo.
+
+= Author
+
+Copyright(C) 2010, Guido De Rosa <mailto:guido.derosa@vemarsas.it>
+
+= License
+
+Ruby's.
+
+
+
+
