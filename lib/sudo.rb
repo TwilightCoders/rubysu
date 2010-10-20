@@ -1,4 +1,5 @@
 require 'drb/drb'
+require 'sudo/support/kernel'
 require 'sudo/support/object'
 
 begin
@@ -31,15 +32,16 @@ module Sudo
       @server_pid = Process.spawn(
         "sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
-      50.times do # TODO TODO TODO: this is horrible 
-        if File.exists? @socket
-          break
-        else 
-          # print '.'
-          sleep(0.02)
-        end
-      end
-      if File.exists? @socket
+      #50.times do # TODO TODO TODO: this is horrible 
+      #  if File.exists? @socket
+      #    break
+      #  else 
+      #    # print '.'
+      #    sleep(0.02)
+      #  end
+      #end
+      #if File.exists? @socket
+      if wait_for(:timeout => 1){File.exists? @socket}
         @open = true
         @proxy = DRbObject.new_with_uri(server_uri)
         if block_given?
