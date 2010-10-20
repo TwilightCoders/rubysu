@@ -13,6 +13,8 @@ module Sudo
   LIBDIR        = File.join ROOTDIR, 'lib'
   SERVER_SCRIPT = File.join ROOTDIR, 'libexec/server.rb'
 
+  class SudoFailed < RuntimeError; end
+
   class Wrapper
 
     class WrapperClosed < RuntimeError; end
@@ -22,12 +24,14 @@ module Sudo
     end
 
     def initialize(ruby_opts='') 
+      @open, @proxy = false, nil
       @socket = "/tmp/rubysu-#{rand(100000)}"
       server_uri = "drbunix:#{@socket}"
+      raise SudoFailed unless system "sudo ruby -e ''"
       @server_pid = Process.spawn(
         "sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
-      loop do 
+      50.times do # TODO TODO TODO: this is horrible 
         if File.exists? @socket
           break
         else 
@@ -35,12 +39,15 @@ module Sudo
           sleep(0.02)
         end
       end
-      #at_exit{@server_thread.join}
-      @open = true
-      @proxy = DRbObject.new_with_uri(server_uri)
-      if block_given?
-        yield self
-        close
+      if File.exists? @socket
+        @open = true
+        @proxy = DRbObject.new_with_uri(server_uri)
+        if block_given?
+          yield self
+          close
+        end
+      else
+        raise RuntimeError, "Couldn't create DRb socket!" 
       end
     end
 
