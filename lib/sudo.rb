@@ -9,6 +9,10 @@ end
 
 module Sudo
 
+  ROOTDIR       = File.expand_path File.join File.dirname(__FILE__), '..'
+  LIBDIR        = File.join ROOTDIR, 'lib'
+  SERVER_SCRIPT = File.join ROOTDIR, 'libexec/server.rb'
+
   class Wrapper
 
     class WrapperClosed < RuntimeError; end
@@ -17,9 +21,16 @@ module Sudo
       alias open new
     end
 
-    def initialize
+    def initialize(ruby_opts='') 
+      server_uri = "druby://localhost:#{30000+rand(10000)}"
+      @server_pid = fork do
+        exec( 
+          "sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{server_uri}"
+        )
+      end      
+      sleep 1 #dirty
+      #at_exit{@server_thread.join}
       @open = true
-      server_uri = "druby://localhost:8787"
       @proxy = DRbObject.new_with_uri(server_uri)
       if block_given?
         yield self
@@ -45,6 +56,7 @@ module Sudo
       else
         @proxy = nil
         @open = false
+        system "sudo kill #{@server_pid}"
       end
     end
 
