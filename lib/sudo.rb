@@ -28,19 +28,13 @@ module Sudo
       @open, @proxy = false, nil
       @socket = "/tmp/rubysu-#{rand(100000)}"
       server_uri = "drbunix:#{@socket}"
+
+      # just to check if we can sudo; and we'll receive a sudo token
       raise SudoFailed unless system "sudo ruby -e ''"
+      
       @server_pid = Process.spawn(
         "sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
-      #50.times do # TODO TODO TODO: this is horrible 
-      #  if File.exists? @socket
-      #    break
-      #  else 
-      #    # print '.'
-      #    sleep(0.02)
-      #  end
-      #end
-      #if File.exists? @socket
       if wait_for(:timeout => 1){File.exists? @socket}
         @open = true
         @proxy = DRbObject.new_with_uri(server_uri)
