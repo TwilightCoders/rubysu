@@ -22,11 +22,19 @@ module Sudo
     end
 
     def initialize(ruby_opts='') 
-      server_uri = "druby://localhost:#{30000+rand(10000)}"
+      @socket = "/tmp/rubysu-#{rand(100000)}"
+      server_uri = "drbunix:#{@socket}"
       @server_pid = Process.spawn(
-        "sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{server_uri}"
+        "sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
-      sleep 1 #dirty
+      loop do 
+        if File.exists? @socket
+          break
+        else 
+          # print '.'
+          sleep(0.02)
+        end
+      end
       #at_exit{@server_thread.join}
       @open = true
       @proxy = DRbObject.new_with_uri(server_uri)
