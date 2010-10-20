@@ -5,7 +5,7 @@ require 'sudo/examples/abc'
 require 'sudo'
 
 
-Sudo::Wrapper.open do |su|
+  su = Sudo::Wrapper.open 
 
   su[File].open '/TEST', 'w' do |f|
     f.puts "Hello from UID=#{su[Process].uid}!"
@@ -17,7 +17,9 @@ Sudo::Wrapper.open do |su|
 
   su[FileUtils].cp '/etc/shadow', '/etc/shadow2'
 
-end
+  su.close
+
+  su.close
 
 
 

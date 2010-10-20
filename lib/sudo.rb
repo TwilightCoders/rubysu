@@ -9,35 +9,45 @@ end
 
 module Sudo
 
-  # def self.open; Wrapper.open; end
-
   class Wrapper
 
+    class WrapperClosed < RuntimeError; end
+
     class << self
+      alias open new
+    end
 
-      def open
-        server_uri = "druby://localhost:8787"
-        sudo_proxy = DRbObject.new_with_uri(server_uri)
-        wrapper = Sudo::Wrapper.new sudo_proxy
-        if block_given?
-          yield wrapper
-          wrapper.close
-        else
-          wrapper
-        end
+    def initialize
+      @open = true
+      server_uri = "druby://localhost:8787"
+      @proxy = DRbObject.new_with_uri(server_uri)
+      if block_given?
+        yield self
+        close
       end
-
     end
 
-    def initialize(proxy)
-      @proxy = proxy
-    end
+    def open?; @open; end
+
+    def closed?; !@open; end
+
     def [](object)
-      MethodProxy.new object, @proxy
+      if @open
+        MethodProxy.new object, @proxy
+      else
+        raise WrapperClosed, "Wrapper closed"
+      end
     end
+    
     def close
-      @proxy = nil
+      if closed?
+        raise WrapperClosed, "Wrapper already closed"
+      else
+        @proxy = nil
+        @open = false
+      end
     end
+
   end
 
   class MethodProxy
