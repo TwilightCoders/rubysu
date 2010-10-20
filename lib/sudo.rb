@@ -23,11 +23,9 @@ module Sudo
 
     def initialize(ruby_opts='') 
       server_uri = "druby://localhost:#{30000+rand(10000)}"
-      @server_pid = fork do
-        exec( 
-          "sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{server_uri}"
-        )
-      end      
+      @server_pid = Process.spawn(
+        "sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{server_uri}"
+      )
       sleep 1 #dirty
       #at_exit{@server_thread.join}
       @open = true
