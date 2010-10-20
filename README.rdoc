@@ -1,12 +1,12 @@
 = RubySU
 
-Give Ruby onìbjects speruser privileges.
+Give Ruby objects speruser privileges.
 
 Based on dRuby and sudo.
 
 = Author
 
-Copyright(C) 2010, Guido De Rosa <guido.derosa vemarsas.it>
+Copyright 2010, Guido De Rosa <guido.derosa vemarsas.it>
 
 = License
 
