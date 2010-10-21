@@ -26,7 +26,7 @@ module Sudo
 
     def initialize(ruby_opts='') 
       @proxy = nil
-      @socket = "/tmp/rubysu-#{rand(100000)}"
+      @socket = "/tmp/rubysu-#{Process.pid}-#{object_id}" 
       server_uri = "drbunix:#{@socket}"
 
       # just to check if we can sudo; and we'll receive a sudo token
@@ -35,6 +35,13 @@ module Sudo
       @server_pid = spawn( 
 "sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
+      at_exit do 
+        if @server_pid 
+          system "sudo kill     #{@server_pid}"   or
+          system "sudo kill -9  #{@server_pid}"
+        end
+      end
+
       if wait_for(:timeout => 1){File.exists? @socket}
         @proxy = DRbObject.new_with_uri(server_uri)
         if block_given?
