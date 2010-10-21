@@ -9,6 +9,14 @@ rescue DRb::DRbServerNotFound
   DRb.start_service
 end
 
+module SudoMixin
+  module Sudo
+  end
+  def sudo(object)
+    @__default_sudo_wrapper[object]
+  end
+end
+
 module Sudo
 
   ROOTDIR       = File.expand_path File.join File.dirname(__FILE__), '..'
@@ -16,6 +24,18 @@ module Sudo
   SERVER_SCRIPT = File.join ROOTDIR, 'libexec/server.rb'
 
   class RuntimeError  < RuntimeError; end
+
+  module DSL
+    def sudo_start(*args, &blk)
+      @__default_sudo_wrapper = Sudo::Wrapper.new(*args, &blk)
+    end
+    def sudo_stop
+      @__default_sudo_wrapper.close
+    end
+    def sudo(object)
+      @__default_sudo_wrapper[object]
+    end
+  end
 
   class Wrapper
 
