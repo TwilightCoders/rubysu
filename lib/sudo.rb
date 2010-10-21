@@ -1,6 +1,7 @@
 require 'drb/drb'
 require 'sudo/support/kernel'
 require 'sudo/support/object'
+require 'sudo/support/process'
 
 begin
   DRb.current_server
@@ -36,7 +37,7 @@ module Sudo
 "sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
       at_exit do 
-        if @server_pid 
+        if @server_pid and Process.exists? @server_pid
           system "sudo kill     #{@server_pid}"   or
           system "sudo kill -9  #{@server_pid}"
         end
