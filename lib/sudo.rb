@@ -15,17 +15,26 @@ module Sudo
   LIBDIR        = File.join ROOTDIR, 'lib'
   SERVER_SCRIPT = File.join ROOTDIR, 'libexec/server.rb'
 
-  class SudoFailed < RuntimeError; end
+  class RuntimeError  < RuntimeError; end
 
   class Wrapper
 
-    class WrapperClosed < RuntimeError; end
+    class RuntimeError            < RuntimeError;   end
+    class SudoFailed              < RuntimeError;   end
+    class WrapperClosed           < RuntimeError;   end
+    class SocketStillExists       < RuntimeError;   end
+    class SudoProcessStillExists  < RuntimeError;   end
+    class NoValidSocket           < RuntimeError;   end
+    class SocketNotFound          < NoValidSocket;  end
+    class NoValidSudoPid          < RuntimeError;   end
+    class SudoProcessNotFound     < NoValidSudoPid; end
 
     class << self
       alias open new
     end
 
     def initialize(ruby_opts='') 
+      @open = false
       @proxy = nil
       @socket = "/tmp/rubysu-#{Process.pid}-#{object_id}" 
       server_uri = "drbunix:#{@socket}"
@@ -33,32 +42,52 @@ module Sudo
       # just to check if we can sudo; and we'll receive a sudo token
       raise SudoFailed unless system "sudo ruby -e ''"
       
-      @server_pid = spawn( 
+      @sudo_pid = spawn( 
 "sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
-      at_exit do 
-        if @server_pid and Process.exists? @server_pid
-          system "sudo kill     #{@server_pid}"   or
-          system "sudo kill -9  #{@server_pid}"
-        end
-      end
+      at_exit{close}
 
       if wait_for(:timeout => 1){File.exists? @socket}
         @proxy = DRbObject.new_with_uri(server_uri)
+        @open = true if @proxy
         if block_given?
           yield self
           close
         end
       else
-        raise RuntimeError, "Couldn't create DRb socket!" 
+        raise RuntimeError, "Couldn't create DRb socket #{@socket}"  
       end
     end
 
-    def open?  
-      @server_pid and @proxy
-    end
+    def open?; @open; end
 
     def closed?; not open?; end
+
+    def properly_closed?
+      if closed?
+        raise SocketStillExists       if 
+            (@socket and File.exists? @socket)
+        raise SudoProcessStillExists  if 
+            (@sudo_pid and Process.exists? @sudo_pid)
+        return true
+      end # otherwise return nil (as "Not Applicable")
+    end
+
+    def properly_open?
+     if open?
+       begin
+         raise SocketNotFound unless File.exists? @socket
+       rescue TypeError
+         raise NoValidSocket, "@socket = #{@socket.inspect}" 
+       end
+       begin
+         raise SudoProcessNotFound unless Process.exists? @sudo_pid
+       rescue TypeError
+         raise NoValidSudoPid, "@sudo_pid = #{@sudo_pid.inspect}"
+       end
+       return true
+     end # otherwise return nil (as "Not Applicable")
+    end
 
     def [](object)
       if open?
@@ -69,8 +98,16 @@ module Sudo
     end
     
     def close
+      if @sudo_pid and Process.exists? @sudo_pid
+        system "sudo kill     #{@sudo_pid}"         or
+        system "sudo kill -9  #{@sudo_pid}"         and
+        @sudo_pid = nil
+      end
+      if @socket and File.exists? @socket
+        system "sudo rm -f #{@socket}"                and
+        @socket = nil
+      end
       @proxy = nil
-      @server_pid = nil if system "sudo kill #{@server_pid}"
     end
 
   end
