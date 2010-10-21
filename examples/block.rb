@@ -1,6 +1,4 @@
-require 'drb/drb'
 require 'fileutils'
-require 'sudo/support/object'
 require 'sudo/examples/abc'
 require 'sudo'
 

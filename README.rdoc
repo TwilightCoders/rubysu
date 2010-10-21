@@ -7,6 +7,17 @@ sudo[http://www.sudo.ws/].
 
 Only tested with {MRI 1.9}[http://en.wikipedia.org/wiki/Ruby_MRI] .
 
+= How It Works
+
+Spawns a sudo-ed Ruby process running a DRb server. Communication is
+done via a Unix socket (and, of course, permissions are set to +0600+).
+
+Library users don't have to deal with the details directly.
+
+No long-running daemons involved, everything is created on demand.
+
+Access control is entirely delegated to +sudo+.
+
 = Requirements
 
 Your user must be allowed, in +/etc/sudoers+, to run +ruby+ and +kill+
@@ -15,10 +26,69 @@ commands as root.
 A password will be required from the console, or not, depending on
 the +NOPASSWD+ options in +/etc/sudoers+.
 
+= Usage
+
+== DSL style, give root power to a class and a module
+
+  require 'fileutils'
+  require 'sudo'
+
+  include Sudo::DSL
+
+  # The String will be passed as options to sudo-ed Ruby interpreter
+  sudo_start "-rfileutils"
+
+  # only readable by root
+  puts sudo(File).read '/etc/shadow'
+
+  # write into the / 
+  sudo(FileUtils).mkdir_p '/TEST_DIR/SUB_DIR' 
+
+  # Stop the dRuby server (whish is running as root), as soon as you can
+  sudo_stop
+
+== Explicit creation of a Wrapper object, wraps a module, block given
+
+  require 'fileutils'
+  require 'sudo'
+
+  Sudo::Wrapper.open('-rfileutils) do |su|
+    # here you use square brackets [] :
+    # su is an object, not a (top-level) method.
+    su[FileUtils].mkdir_p '/ONLY/ROOT/CAN/DO/THAT'
+  end
+  # Sockets and processes are closed automatially when the block exits
+
+== Explicit creation of a Wrapper object, wraps an instance, without block
+
+  require 'mygem/myclass'
+  require 'sudo'
+
+  obj   = MyGem::MyClass.new
+  sudo  = Sudo::Wrapper.open(-rmygem/myclass -rmygem/myclass2)
+
+  sudo[obj].method # will be run as root (well, a sudo-ed copy) 
+
+  # when you've done:
+  sudo.close 
+
+= ToDo
+
+* +sudo+ has a +-A+ option to accept password via an external program
+  (maybe graphical): support this feature.
+
+* more options in Sudo::Wrapper.new, maybe a Hash.
+
+= Thanks
+
+Thanks to Tony Arcieri and Brian Candler for suggestions on 
+ruby-talk[http://www.ruby-forum.com/topic/262655].
 
 = Author
 
 Copyright (c) 2010 {Guido De Rosa}[http://github.com/gderosa/].
+
+Sponsored by {VEMAR s.a.s.}[http://www.vemarsas.it/] 
 
 = License
 
