@@ -1,12 +1,24 @@
-= RubySU
+= Ruby Sudo
 
-Give Ruby objects speruser privileges.
+Give Ruby objects superuser privileges.
 
-Based on dRuby and sudo.
+Based on dRuby[http://ruby-doc.org/ruby-1.9/classes/DRb.html] and 
+sudo[http://www.sudo.ws/].
+
+Only tested with {MRI 1.9}[http://en.wikipedia.org/wiki/Ruby_MRI] .
+
+= Requirements
+
+Your user must be allowed, in +/etc/sudoers+, to run +ruby+ and +kill+
+commands as root.
+
+A password will be required from the console, or not, depending on
+the +NOPASSWD+ options in +/etc/sudoers+.
+
 
 = Author
 
-Copyright 2010, Guido De Rosa <guido.derosa vemarsas.it>
+Copyright (c) 2010 {Guido De Rosa}[http://github.com/gderosa/].
 
 = License
 
