@@ -19,10 +19,10 @@ module Sudo
 
   module DSL
     def sudo_start(*args, &blk)
-      @__default_sudo_wrapper = Sudo::Wrapper.new(*args, &blk)
+      @__default_sudo_wrapper = Sudo::Wrapper.new(*args, &blk).start!
     end
     def sudo_stop
-      @__default_sudo_wrapper.close
+      @__default_sudo_wrapper.stop!
     end
     def sudo(object)
       @__default_sudo_wrapper[object]
@@ -31,89 +31,66 @@ module Sudo
 
   class Wrapper
 
-    class RuntimeError            < RuntimeError;   end
-    class SudoFailed              < RuntimeError;   end
-    class WrapperClosed           < RuntimeError;   end
-    class SocketStillExists       < RuntimeError;   end
-    class SudoProcessStillExists  < RuntimeError;   end
-    class NoValidSocket           < RuntimeError;   end
-    class SocketNotFound          < NoValidSocket;  end
-    class NoValidSudoPid          < RuntimeError;   end
-    class SudoProcessNotFound     < NoValidSudoPid; end
+    class RuntimeError              < RuntimeError;       end
+    class NotRunning                < RuntimeError;       end
+    class SudoFailed                < RuntimeError;       end
+    class SocketStillExists         < RuntimeError;       end
+    class SudoProcessExists         < RuntimeError;       end
+    class SudoProcessAlreadyExists  < SudoProcessExists;  end
+    class SudoProcessStillExists    < RuntimeError;       end
+    class NoValidSocket             < RuntimeError;       end
+    class SocketNotFound            < NoValidSocket;      end
+    class NoValidSudoPid            < RuntimeError;       end
+    class SudoProcessNotFound       < NoValidSudoPid;     end
 
     class << self
-      alias open new
+
+      # with blocks
+      def run(*args)
+        sudo = new(*args)
+        yield sudo.start!
+        sudo.stop!
+      end 
+
     end
 
     def initialize(ruby_opts='') 
-      @proxy = nil
-      @socket = "/tmp/rubysu-#{Process.pid}-#{object_id}" 
-      server_uri = "drbunix:#{@socket}"
+      @proxy      = nil
+      @socket     = "/tmp/rubysu-#{Process.pid}-#{object_id}" 
+      @sudo_pid   = nil
+      @ruby_opts  = ruby_opts
+    end
 
+    def server_uri; "drbunix:#{@socket}"; end
+    
+    def start! 
       # just to check if we can sudo; and we'll receive a sudo token
       raise SudoFailed unless system "sudo ruby -e ''"
+
+      raise SudoProcessAlreadyExists if @sudo_pid and Process.exists? @sudo_pid
       
       @sudo_pid = spawn( 
-"sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
+"sudo ruby -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
-      at_exit{close}
+      at_exit{stop!}
 
       if wait_for(:timeout => 1){File.exists? @socket}
         @proxy = DRbObject.new_with_uri(server_uri)
-        if block_given?
-          yield self
-          close
-        end
       else
         raise RuntimeError, "Couldn't create DRb socket #{@socket}"  
       end
+      self
     end
 
-    def open?; true if @proxy; end
-
-    def closed?; not open?; end
-
-# do we really need this stuff?
-=begin
-    def properly_closed?
-      if closed?
-        raise SocketStillExists       if 
-            (@socket and File.exists? @socket)
-        raise SudoProcessStillExists  if 
-            (@sudo_pid and Process.exists? @sudo_pid)
-        return true
-      end # otherwise return nil (as "Not Applicable")
-    end
-    def properly_open?
-     if open?
-       begin
-         raise SocketNotFound unless File.exists? @socket
-       rescue TypeError
-         raise NoValidSocket, "@socket = #{@socket.inspect}" 
-       end
-       begin
-         raise SudoProcessNotFound unless Process.exists? @sudo_pid
-       rescue TypeError
-         raise NoValidSudoPid, "@sudo_pid = #{@sudo_pid.inspect}"
-       end
-       return true
-     end # otherwise return nil (as "Not Applicable")
-    end
-=end
-
-    def [](object)
-      if open?
-        MethodProxy.new object, @proxy
-      else
-        raise WrapperClosed
-      end
+    def running?
+      true if (
+        @sudo_pid and Process.exists? @sudo_pid and
+        @socket   and File.exists?    @socket   and
+        @proxy
+      )
     end
 
-    def close
-      closed? ? raise WrapperClosed : close!
-    end
-    
-    def close!
+    def stop!
       if @sudo_pid and Process.exists? @sudo_pid
         system "sudo kill     #{@sudo_pid}"               or
         system "sudo kill -9  #{@sudo_pid}"               and
@@ -129,6 +106,14 @@ module Sudo
           "Couldn't delete socket #{@socket}"             if      @socket
       @proxy = nil                                        unless
           (@sudo_pid and @socket)
+    end
+
+    def [](object)
+      if running?
+        MethodProxy.new object, @proxy
+      else
+        raise NotRunning
+      end
     end
 
   end

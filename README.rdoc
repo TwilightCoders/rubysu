@@ -7,17 +7,6 @@ sudo[http://www.sudo.ws/].
 
 Only tested with {MRI 1.9}[http://en.wikipedia.org/wiki/Ruby_MRI] .
 
-= How It Works
-
-Spawns a sudo-ed Ruby process running a DRb server. Communication is
-done via a Unix socket (and, of course, permissions are set to +0600+).
-
-Library users don't have to deal with the details directly.
-
-No long-running daemons involved, everything is created on demand.
-
-Access control is entirely delegated to +sudo+.
-
 = Requirements
 
 Your user must be allowed, in +/etc/sudoers+, to run +ruby+ and +kill+
@@ -52,12 +41,12 @@ the +NOPASSWD+ options in +/etc/sudoers+.
   require 'fileutils'
   require 'sudo'
 
-  Sudo::Wrapper.open('-rfileutils) do |su|
+  Sudo::Wrapper.run('-rfileutils) do |su|
     # here you use square brackets [] :
     # su is an object, not a (top-level) method.
     su[FileUtils].mkdir_p '/ONLY/ROOT/CAN/DO/THAT'
   end
-  # Sockets and processes are closed automatially when the block exits
+  # Sockets and processes are closed automatically when the block exits
 
 == Explicit creation of a Wrapper object, wraps an instance, without block
 
@@ -65,12 +54,26 @@ the +NOPASSWD+ options in +/etc/sudoers+.
   require 'sudo'
 
   obj   = MyGem::MyClass.new
-  sudo  = Sudo::Wrapper.open(-rmygem/myclass -rmygem/myclass2)
+  
+  sudo  = Sudo::Wrapper.new(-rmygem/myclass -rmygem/myclass2)
+  
+  sudo.start!
 
   sudo[obj].method # will be run as root (well, a sudo-ed copy) 
 
   # when you've done:
-  sudo.close 
+  sudo.stop!
+
+= How It Works
+
+Spawns a sudo-ed Ruby process running a DRb server. Communication is
+done via a Unix socket (and, of course, permissions are set to +0600+).
+
+Library users don't have to deal with the details directly.
+
+No long-running daemons involved, everything is created on demand.
+
+Access control is entirely delegated to +sudo+.
 
 = ToDo
 
