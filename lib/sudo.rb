@@ -46,7 +46,6 @@ module Sudo
     end
 
     def initialize(ruby_opts='') 
-      @open = false
       @proxy = nil
       @socket = "/tmp/rubysu-#{Process.pid}-#{object_id}" 
       server_uri = "drbunix:#{@socket}"
@@ -61,7 +60,6 @@ module Sudo
 
       if wait_for(:timeout => 1){File.exists? @socket}
         @proxy = DRbObject.new_with_uri(server_uri)
-        @open = true if @proxy
         if block_given?
           yield self
           close
@@ -71,10 +69,12 @@ module Sudo
       end
     end
 
-    def open?; @open; end
+    def open?; true if @proxy; end
 
     def closed?; not open?; end
 
+# do we really need this stuff?
+=begin
     def properly_closed?
       if closed?
         raise SocketStillExists       if 
@@ -84,7 +84,6 @@ module Sudo
         return true
       end # otherwise return nil (as "Not Applicable")
     end
-
     def properly_open?
      if open?
        begin
@@ -100,26 +99,36 @@ module Sudo
        return true
      end # otherwise return nil (as "Not Applicable")
     end
+=end
 
     def [](object)
       if open?
         MethodProxy.new object, @proxy
       else
-        raise WrapperClosed, "Wrapper closed"
+        raise WrapperClosed
       end
     end
-    
+
     def close
+      closed? ? raise WrapperClosed : close!
+    end
+    
+    def close!
       if @sudo_pid and Process.exists? @sudo_pid
-        system "sudo kill     #{@sudo_pid}"         or
-        system "sudo kill -9  #{@sudo_pid}"         and
+        system "sudo kill     #{@sudo_pid}"               or
+        system "sudo kill -9  #{@sudo_pid}"               and
         @sudo_pid = nil
       end
       if @socket and File.exists? @socket
-        system "sudo rm -f #{@socket}"                and
+        system "sudo rm -f #{@socket}"                    and
         @socket = nil
       end
-      @proxy = nil
+      raise SudoProcessStillExists, 
+          "Couldn't kill sudo process (PID=#{@sudo_pid})" if      @sudo_pid
+      raise SocketStillExists,
+          "Couldn't delete socket #{@socket}"             if      @socket
+      @proxy = nil                                        unless
+          (@sudo_pid and @socket)
     end
 
   end
