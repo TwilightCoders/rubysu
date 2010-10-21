@@ -9,14 +9,6 @@ rescue DRb::DRbServerNotFound
   DRb.start_service
 end
 
-module SudoMixin
-  module Sudo
-  end
-  def sudo(object)
-    @__default_sudo_wrapper[object]
-  end
-end
-
 module Sudo
 
   ROOTDIR       = File.expand_path File.join File.dirname(__FILE__), '..'
