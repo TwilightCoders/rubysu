@@ -2,17 +2,19 @@ module Kernel
   def wait_for(conf)
     start = Time.now
     defaults = {
-      :timeout => 2.0
+      :timeout  => nil,
+      :step     => 0.125
     }
     conf = defaults.update conf
-    conf[:step] ||= conf[:timeout] / 20.0
-    retval = false
+    condition = false
     loop do
-      retval = yield
-      break if retval
-      break if Time.now - start > conf[:timeout]
-      sleep conf[:step]
+      condition = yield
+
+      break if    condition
+      break if    conf[:timeout] and Time.now - start > conf[:timeout]
+      
+      sleep       conf[:step]
     end
-    retval
+    condition 
   end 
 end

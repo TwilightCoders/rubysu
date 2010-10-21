@@ -25,18 +25,17 @@ module Sudo
     end
 
     def initialize(ruby_opts='') 
-      @open, @proxy = false, nil
+      @proxy = nil
       @socket = "/tmp/rubysu-#{rand(100000)}"
       server_uri = "drbunix:#{@socket}"
 
       # just to check if we can sudo; and we'll receive a sudo token
       raise SudoFailed unless system "sudo ruby -e ''"
       
-      @server_pid = Process.spawn(
-        "sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
+      @server_pid = spawn( 
+"sudo ruby -I#{LIBDIR} #{ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
       if wait_for(:timeout => 1){File.exists? @socket}
-        @open = true
         @proxy = DRbObject.new_with_uri(server_uri)
         if block_given?
           yield self
@@ -47,12 +46,14 @@ module Sudo
       end
     end
 
-    def open?; @open; end
+    def open?  
+      @server_pid and @proxy
+    end
 
-    def closed?; !@open; end
+    def closed?; not open?; end
 
     def [](object)
-      if @open
+      if open?
         MethodProxy.new object, @proxy
       else
         raise WrapperClosed, "Wrapper closed"
@@ -60,13 +61,8 @@ module Sudo
     end
     
     def close
-      if closed?
-        raise WrapperClosed, "Wrapper already closed"
-      else
-        @proxy = nil
-        @open = false
-        system "sudo kill #{@server_pid}"
-      end
+      @proxy = nil
+      @server_pid = nil if system "sudo kill #{@server_pid}"
     end
 
   end
