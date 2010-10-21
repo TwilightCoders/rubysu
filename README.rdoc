@@ -66,10 +66,9 @@ the +NOPASSWD+ options in +/etc/sudoers+.
 
 = How It Works
 
-Spawns a sudo-ed Ruby process running a DRb server. Communication is
+Spawns a sudo-ed Ruby process running a 
+DRb[http://ruby-doc.org/ruby-1.9/classes/DRb.html] server. Communication is
 done via a Unix socket (and, of course, permissions are set to +0600+).
-
-Library users don't have to deal with the details directly.
 
 No long-running daemons involved, everything is created on demand.
 
