@@ -52,6 +52,22 @@ module Sudo
         sudo.stop!
       end 
 
+      # Not an instance method, so it may act as a finalizer
+      # (as in ObjectSpace.define_finalizer)
+      def cleanup!(h)
+        if h[:pid] and Process.exists? h[:pid]
+          system "sudo kill     #{h[:pid]}"               or
+          system "sudo kill -9  #{h[:pid]}"               or
+          raise SudoProcessStillExists, 
+            "Couldn't kill sudo process (PID=#{h[:pid]})" 
+        end
+        if h[:socket] and File.exists? h[:socket]
+          system "sudo rm -f #{h[:socket]}"               or
+          raise SocketStillExists,
+              "Couldn't delete socket #{h[:socket]}"
+        end
+      end
+
     end
 
     def initialize(ruby_opts='') 
@@ -71,8 +87,11 @@ module Sudo
       
       @sudo_pid = spawn( 
 "sudo ruby -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
+      ) 
+      Process.detach(@sudo_pid) if @sudo_pid # avoid zombies
+      ObjectSpace.define_finalizer self, Finalizer.new(
+          :pid => @sudo_pid, :socket => @socket
       )
-      at_exit{stop!}
 
       if wait_for(:timeout => 1){File.exists? @socket}
         @proxy = DRbObject.new_with_uri(server_uri)
@@ -91,21 +110,9 @@ module Sudo
     end
 
     def stop!
-      if @sudo_pid and Process.exists? @sudo_pid
-        system "sudo kill     #{@sudo_pid}"               or
-        system "sudo kill -9  #{@sudo_pid}"               and
-        @sudo_pid = nil
-      end
-      if @socket and File.exists? @socket
-        system "sudo rm -f #{@socket}"                    and
-        @socket = nil
-      end
-      raise SudoProcessStillExists, 
-          "Couldn't kill sudo process (PID=#{@sudo_pid})" if      @sudo_pid
-      raise SocketStillExists,
-          "Couldn't delete socket #{@socket}"             if      @socket
-      @proxy = nil                                        unless
-          (@sudo_pid and @socket)
+      self.class.cleanup!(:pid => @sudo_pid, :socket => @socket)
+      @proxy = nil
+
     end
 
     def [](object)
@@ -113,6 +120,18 @@ module Sudo
         MethodProxy.new object, @proxy
       else
         raise NotRunning
+      end
+    end
+
+    # Inspired by Remover class in tmpfile.rb (Ruby std library)
+    class Finalizer
+      def initialize(h)
+        @data = h
+      end
+
+      # mimic proc-like behavior (walk like a duck)
+      def call(*args)
+        Sudo::Wrapper.cleanup! @data
       end
     end
 

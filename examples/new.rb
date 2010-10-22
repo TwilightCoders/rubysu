@@ -11,7 +11,11 @@ end
 
 su[FileUtils].cp '/etc/shadow', '/etc/shadow2'
 
-su.stop!
+# i you don't call stop! explicitly, the corresponding process and file
+# cleanup will be done automatically, when the object gets out of scope
+#
+# su.stop!
+
 
 
 
