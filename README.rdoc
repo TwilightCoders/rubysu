@@ -7,7 +7,7 @@ sudo[http://www.sudo.ws/].
 
 Only tested with {MRI 1.9}[http://en.wikipedia.org/wiki/Ruby_MRI] .
 
-= Requirements
+== REQUIREMENTS
 
 Your user must be allowed, in +/etc/sudoers+, to run +ruby+ and +kill+
 commands as root.
@@ -15,9 +15,9 @@ commands as root.
 A password will be required from the console, or not, depending on
 the +NOPASSWD+ options in +/etc/sudoers+.
 
-= Usage
+== USAGE
 
-== DSL style, give root power to a class and a module
+=== DSL style
 
   require 'fileutils'
   require 'sudo'
@@ -36,7 +36,7 @@ the +NOPASSWD+ options in +/etc/sudoers+.
   # Stop the dRuby server (whish is running as root), as soon as you can
   sudo_stop
 
-== Explicit creation of a Wrapper object, wraps a module, block given
+=== Explicit creation of a Wrapper object, block given
 
   require 'fileutils'
   require 'sudo'
@@ -48,7 +48,7 @@ the +NOPASSWD+ options in +/etc/sudoers+.
   end
   # Sockets and processes are closed automatically when the block exits
 
-== Explicit creation of a Wrapper object, wraps an instance, without block
+=== Explicit creation of a Wrapper object, without block
 
   require 'mygem/myclass'
   require 'sudo'
@@ -64,7 +64,7 @@ the +NOPASSWD+ options in +/etc/sudoers+.
   # when you've done:
   sudo.stop!
 
-= How It Works
+== PRINCIPLES OF OPERATION
 
 Spawns a sudo-ed Ruby process running a 
 DRb[http://ruby-doc.org/ruby-1.9/classes/DRb.html] server. Communication is
@@ -74,25 +74,25 @@ No long-running daemons involved, everything is created on demand.
 
 Access control is entirely delegated to +sudo+.
 
-= ToDo
+== TODO
 
 * +sudo+ has a +-A+ option to accept password via an external program
   (maybe graphical): support this feature.
 
 * more options in Sudo::Wrapper.new, maybe a Hash.
 
-= Thanks
+== THANKS
 
 Thanks to Tony Arcieri and Brian Candler for suggestions on 
 ruby-talk[http://www.ruby-forum.com/topic/262655].
 
-= Author
+== AUTHOR
 
 Copyright (c) 2010 {Guido De Rosa}[http://github.com/gderosa/].
 
 Sponsored by {VEMAR s.a.s.}[http://www.vemarsas.it/] 
 
-= License
+== LICENSE
 
 Ruby's.
 
