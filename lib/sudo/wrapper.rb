@@ -1,7 +1,9 @@
 require 'drb/drb'
 require 'sudo/support/kernel'
-require 'sudo/support/object'
 require 'sudo/support/process'
+require 'sudo/constants'
+require 'sudo/system'
+require 'sudo/proxy'
 
 begin
   DRb.current_server
@@ -15,10 +17,8 @@ module Sudo
     class RuntimeError              < RuntimeError;       end
     class NotRunning                < RuntimeError;       end
     class SudoFailed                < RuntimeError;       end
-    class SocketStillExists         < RuntimeError;       end
     class SudoProcessExists         < RuntimeError;       end
     class SudoProcessAlreadyExists  < SudoProcessExists;  end
-    class SudoProcessStillExists    < RuntimeError;       end
     class NoValidSocket             < RuntimeError;       end
     class SocketNotFound            < NoValidSocket;      end
     class NoValidSudoPid            < RuntimeError;       end
@@ -36,17 +36,8 @@ module Sudo
       # Not an instance method, so it may act as a finalizer
       # (as in ObjectSpace.define_finalizer)
       def cleanup!(h)
-        if h[:pid] and Process.exists? h[:pid]
-          system "sudo kill     #{h[:pid]}"               or
-          system "sudo kill -9  #{h[:pid]}"               or
-          raise SudoProcessStillExists, 
-            "Couldn't kill sudo process (PID=#{h[:pid]})" 
-        end
-        if h[:socket] and File.exists? h[:socket]
-          system "sudo rm -f #{h[:socket]}"               or
-          raise SocketStillExists,
-              "Couldn't delete socket #{h[:socket]}"
-        end
+        Sudo::System.kill   h[:pid]
+        Sudo::System.unlink h[:socket]
       end
 
     end
@@ -61,10 +52,7 @@ module Sudo
     def server_uri; "drbunix:#{@socket}"; end
     
     def start! 
-      # just to check if we can sudo; and we'll receive a sudo token
-      raise SudoFailed unless system "sudo ruby -e ''"
-
-      raise SudoProcessAlreadyExists if @sudo_pid and Process.exists? @sudo_pid
+      Sudo::System.check
       
       @sudo_pid = spawn( 
 "sudo ruby -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"

@@ -1,4 +1,4 @@
-require 'sudo'
+require 'sudo/dsl'
 
 include Sudo::DSL
 
