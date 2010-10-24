@@ -1,3 +1,4 @@
+=begin
 require 'sudo/dsl'
 
 include Sudo::DSL
@@ -10,4 +11,4 @@ sudo(FileUtils).mkdir_p '/TEST_DIR/SUB_DIR'
 
 #sudo_stop # automatic clenup, when out of scope, if not explicit
 
-
+=end

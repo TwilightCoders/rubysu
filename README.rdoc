@@ -17,39 +17,6 @@ the +NOPASSWD+ options in +/etc/sudoers+.
 
 == USAGE
 
-=== DSL style
-
-  require 'fileutils'
-  require 'sudo'
-
-  include Sudo::DSL
-
-  # The String will be passed as options to sudo-ed Ruby interpreter
-  sudo_start "-rfileutils"
-
-  # only readable by root
-  puts sudo(File).read '/etc/shadow'
-
-  # write into the / 
-  sudo(FileUtils).mkdir_p '/TEST_DIR/SUB_DIR' 
-
-  # Stop the dRuby server (whish is running as root), as soon as you can
-  sudo_stop
-
-=== Explicit creation of a Wrapper object, block given
-
-  require 'fileutils'
-  require 'sudo'
-
-  Sudo::Wrapper.run('-rfileutils) do |su|
-    # here you use square brackets [] :
-    # su is an object, not a (top-level) method.
-    su[FileUtils].mkdir_p '/ONLY/ROOT/CAN/DO/THAT'
-  end
-  # Sockets and processes are closed automatically when the block exits
-
-=== Explicit creation of a Wrapper object, without block
-
   require 'mygem/myclass'
   require 'sudo'
 
@@ -63,6 +30,18 @@ the +NOPASSWD+ options in +/etc/sudoers+.
 
   # when you've done:
   sudo.stop!
+
+=== With block
+
+  require 'fileutils'
+  require 'sudo'
+
+  Sudo::Wrapper.run('-rfileutils) do |su|
+    # here you use square brackets [] :
+    # su is an object, not a (top-level) method.
+    su[FileUtils].mkdir_p '/ONLY/ROOT/CAN/DO/THAT'
+  end
+  # Sockets and processes are closed automatically when the block exits
 
 == PRINCIPLES OF OPERATION
 

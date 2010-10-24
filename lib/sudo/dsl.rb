@@ -1,3 +1,12 @@
+=begin
+  DEPRECATED
+
+  It's not clear what the scope of __default_sudo_wrapper should be:
+  local, instance, class? global? and what about thread-safety?
+
+=end
+
+=begin
 require 'sudo/wrapper'
 
 module Sudo
@@ -15,3 +24,4 @@ module Sudo
   end
 
 end
+=end
