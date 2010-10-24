@@ -1,8 +1,10 @@
 # -*- encoding: utf-8 -*-
 
-$LOAD_PATH.unshift( File.dirname(__FILE__) + '/lib' )
+ROOTDIR = File.dirname(__FILE__)
+$LOAD_PATH.unshift( ROOTDIR + '/lib' )
 
-require 'sudo'
+require 'date'
+require 'sudo/constants'
 
 Gem::Specification.new do |s|
   s.name = %q{sudo}
@@ -16,18 +18,7 @@ Give Ruby objects superuser privileges.
 Based on dRuby and sudo (the Unix program).
 END
   s.email = %q{guido.derosa@vemarsas.it}
-  s.files = [
-    "lib/sudo/support/object.rb", 
-    "lib/sudo/support/kernel.rb", 
-    "lib/sudo/support/process.rb", 
-    "lib/sudo/wrapper.rb", 
-    "lib/sudo.rb", 
-    "libexec/server.rb", 
-    "examples/block.rb", 
-    "examples/dsl.rb", 
-    "examples/new.rb", 
-    "README.rdoc"
-  ]
+  s.files = File.readlines("#{ROOTDIR}/MANIFEST").map{|s| s.chomp}  
   s.homepage = %q{http://github.com/gderosa/rubysu}
   #s.post_install_message = %q{}
   s.rdoc_options = ["--charset=UTF-8", "--main", "README.rdoc"]
