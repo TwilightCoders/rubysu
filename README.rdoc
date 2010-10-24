@@ -22,9 +22,11 @@ the +NOPASSWD+ options in +/etc/sudoers+.
 
   obj   = MyGem::MyClass.new
   
-  sudo  = Sudo::Wrapper.new(-rmygem/myclass -rmygem/myclass2)
+  sudo  = Sudo::Wrapper.new
   
-  sudo.start!
+  # 'mygem/myclass' will be automatically required in the 
+  # sudo DRb server 
+  sudo.start! 
 
   sudo[obj].method # will be run as root (well, a sudo-ed copy) 
 
@@ -36,7 +38,7 @@ the +NOPASSWD+ options in +/etc/sudoers+.
   require 'fileutils'
   require 'sudo'
 
-  Sudo::Wrapper.run('-rfileutils) do |su|
+  Sudo::Wrapper.run do |su|
     # here you use square brackets [] :
     # su is an object, not a (top-level) method.
     su[FileUtils].mkdir_p '/ONLY/ROOT/CAN/DO/THAT'

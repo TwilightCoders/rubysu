@@ -1,12 +1,14 @@
 require 'fileutils'
+require 'ipaddr'
 require 'sudo'
 
-su = Sudo::Wrapper.new('-rfileutils')
+su = Sudo::Wrapper.new
 
 su.start!
 
 su[File].open '/TEST', 'w' do |f|
   f.puts "Hello from UID=#{su[Process].uid}!"
+  f.puts "#{su[IPAddr].new}"
 end
 
 su[FileUtils].cp '/etc/shadow', '/etc/shadow2'

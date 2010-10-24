@@ -26,9 +26,10 @@ module Sudo
 
     class << self
 
-      # with blocks
-      def run(*args)
-        sudo = new(*args)
+      # With blocks.
+      # +ruby_opts+ are the command line options to the sudo ruby interpreter
+      def run(ruby_opts)
+        sudo = new(ruby_opts)
         yield sudo.start!
         sudo.stop!
       end 
@@ -42,6 +43,7 @@ module Sudo
 
     end
 
+    # +ruby_opts+ are the command line options to the sudo ruby interpreter
     def initialize(ruby_opts='') 
       @proxy      = nil
       @socket     = "/tmp/rubysu-#{Process.pid}-#{object_id}" 
@@ -67,7 +69,16 @@ module Sudo
       else
         raise RuntimeError, "Couldn't create DRb socket #{@socket}"  
       end
+
+      load_features
+
       self
+    end
+
+    def load_features
+      $LOADED_FEATURES.each do |feature|
+        self[Kernel].require feature
+      end
     end
 
     def running?

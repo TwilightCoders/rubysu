@@ -1,7 +1,7 @@
 require 'fileutils'
 require 'sudo'
 
-Sudo::Wrapper.run('-rfileutils') do |su|
+Sudo::Wrapper.run do |su|
 
   su[File].open '/TEST', 'w' do |f|
     f.puts "Hello from UID=#{su[Process].uid}!"
