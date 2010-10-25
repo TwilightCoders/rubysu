@@ -45,10 +45,11 @@ module Sudo
 
     # +ruby_opts+ are the command line options to the sudo ruby interpreter
     def initialize(ruby_opts='') 
-      @proxy      = nil
-      @socket     = "/tmp/rubysu-#{Process.pid}-#{object_id}" 
-      @sudo_pid   = nil
-      @ruby_opts  = ruby_opts
+      @proxy            = nil
+      @socket           = "/tmp/rubysu-#{Process.pid}-#{object_id}" 
+      @sudo_pid         = nil
+      @ruby_opts        = ruby_opts
+      @loaded_features  = []
     end
 
     def server_uri; "drbunix:#{@socket}"; end
@@ -76,9 +77,16 @@ module Sudo
     end
 
     def load_features
-      $LOADED_FEATURES.each do |feature|
-        self[Kernel].require feature
+      start = Time.now
+      unless $LOADED_FEATURES == @loaded_features
+        new_features = $LOADED_FEATURES - @loaded_features
+        new_features.each do |feature|
+          @proxy.proxy Kernel, :require, feature
+          @loaded_features << feature
+        end
+        #@loaded_features += new_features
       end
+      p Time.now - start
     end
 
     def running?
@@ -97,6 +105,7 @@ module Sudo
 
     def [](object)
       if running?
+        load_features
         MethodProxy.new object, @proxy
       else
         raise NotRunning

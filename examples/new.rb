@@ -1,5 +1,5 @@
 require 'fileutils'
-require 'ipaddr'
+autoload :IPAddr, 'ipaddr'
 require 'sudo'
 
 su = Sudo::Wrapper.new
