@@ -44,9 +44,8 @@ Use it!
   sudo[MyClass].my_class_method
 
 
-When you've done, {stop!}[link:Sudo/Wrapper.html#method-i-stop!] it. 
-Otherwise, that will be done (only) when the +sudo+ object gets 
-garbage-collected.
+When you've done, +stop!+ it. Otherwise, that will be done (only) when 
+the +sudo+ object gets garbage-collected.
 
   sudo.stop!
 
