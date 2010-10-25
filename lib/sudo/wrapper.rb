@@ -34,6 +34,14 @@ module Sudo
         sudo.stop!
       end 
 
+
+      # currently unused
+      #def load_features
+      #  ObjectSpace.each_object(self).each{|x| x.load_features} 
+      #end
+
+      protected
+
       # Not an instance method, so it may act as a finalizer
       # (as in ObjectSpace.define_finalizer)
       def cleanup!(h)
@@ -41,14 +49,11 @@ module Sudo
         Sudo::System.unlink h[:socket]
       end
 
-      # currently unused
-      #def load_features
-      #  ObjectSpace.each_object(self).each{|x| x.load_features} 
-      #end
-
     end
 
-    # +ruby_opts+ are the command line options to the sudo ruby interpreter
+    # +ruby_opts+ are the command line options to the sudo ruby interpreter;
+    # usually you don't need to specify stuff like "-rmygem/mylib", libraries
+    # will be sorta "inherited". 
     def initialize(ruby_opts='') 
       @proxy            = nil
       @socket           = "/tmp/rubysu-#{Process.pid}-#{object_id}" 
@@ -89,8 +94,9 @@ module Sudo
     #  ($LOAD_PATH - @load_path).reverse.each do |dir|
     #    @proxy.proxy Kernel, :eval, "$LOAD_PATH.unshift #{dir}"
     #  end
-    #\end
+    #end 
 
+    #
     def load_features
       unless $LOADED_FEATURES == @loaded_features
         new_features = $LOADED_FEATURES - @loaded_features
@@ -125,7 +131,8 @@ module Sudo
       end
     end
 
-    # Inspired by Remover class in tmpfile.rb (Ruby std library)
+    # Inspired by Remover class in tmpfile.rb (Ruby std library).
+    # You don't want to use this class directly.
     class Finalizer
       def initialize(h)
         @data = h

@@ -17,31 +17,48 @@ the +NOPASSWD+ options in +/etc/sudoers+.
 
 == USAGE
 
+Let's start with a trivial example:
+
   require 'mygem/myclass'
   require 'sudo'
 
   obj   = MyGem::MyClass.new
-  
+
+
+Now, create a Sudo::Wrapper object:
+
   sudo  = Sudo::Wrapper.new
-  
+
+
+Start the sudo-ed Ruby process:
+
   # 'mygem/myclass' will be automatically required in the 
   # sudo DRb server 
+
   sudo.start! 
 
-  sudo[obj].method # will be run as root (well, a sudo-ed copy) 
 
-  # when you've done:
+Use it!
+
+  sudo[obj].my_instance_method 
+  sudo[MyClass].my_class_method
+
+
+When you've done, {stop!}[link:Sudo/Wrapper.html#method-i-stop!] it. 
+Otherwise, that will be 
+done only when the +sudo+ object gets garbage-collected.
+
   sudo.stop!
 
-=== With block
+=== With a block
+
+Use Sudo::Wrapper::run in this case.
 
   require 'fileutils'
   require 'sudo'
 
-  Sudo::Wrapper.run do |su|
-    # here you use square brackets [] :
-    # su is an object, not a (top-level) method.
-    su[FileUtils].mkdir_p '/ONLY/ROOT/CAN/DO/THAT'
+  Sudo::Wrapper.run do |sudo|
+    sudo[FileUtils].mkdir_p '/ONLY/ROOT/CAN/DO/THAT'
   end
   # Sockets and processes are closed automatically when the block exits
 
@@ -57,10 +74,8 @@ Access control is entirely delegated to +sudo+.
 
 == TODO
 
-* +sudo+ has a +-A+ option to accept password via an external program
-  (maybe graphical): support this feature.
-
-* more options in Sudo::Wrapper.new, maybe a Hash.
++sudo+ has a +-A+ option to accept password via an external program
+(maybe graphical): support this feature.
 
 == THANKS
 
