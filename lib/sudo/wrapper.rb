@@ -41,6 +41,11 @@ module Sudo
         Sudo::System.unlink h[:socket]
       end
 
+      # currently unused
+      #def load_features
+      #  ObjectSpace.each_object(self).each{|x| x.load_features} 
+      #end
+
     end
 
     # +ruby_opts+ are the command line options to the sudo ruby interpreter
@@ -50,6 +55,7 @@ module Sudo
       @sudo_pid         = nil
       @ruby_opts        = ruby_opts
       @loaded_features  = []
+      # @load_path        = [] # currentl unused
     end
 
     def server_uri; "drbunix:#{@socket}"; end
@@ -71,13 +77,21 @@ module Sudo
         raise RuntimeError, "Couldn't create DRb socket #{@socket}"  
       end
 
+      #set_load_path # apparently, we don't need this
+      
       load_features
 
       self
     end
 
+    # apparently, we don't need this
+    #def set_load_path
+    #  ($LOAD_PATH - @load_path).reverse.each do |dir|
+    #    @proxy.proxy Kernel, :eval, "$LOAD_PATH.unshift #{dir}"
+    #  end
+    #\end
+
     def load_features
-      start = Time.now
       unless $LOADED_FEATURES == @loaded_features
         new_features = $LOADED_FEATURES - @loaded_features
         new_features.each do |feature|
@@ -86,7 +100,6 @@ module Sudo
         end
         #@loaded_features += new_features
       end
-      p Time.now - start
     end
 
     def running?
@@ -126,3 +139,4 @@ module Sudo
 
   end
 end
+
