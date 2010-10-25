@@ -26,14 +26,15 @@ module Sudo
 
     class << self
 
-      # With blocks.
-      # +ruby_opts+ are the command line options to the sudo ruby interpreter
-      def run(ruby_opts)
-        sudo = new(ruby_opts)
-        yield sudo.start!
+      # Yields a new running Sudo::Wrapper, and do all the necessary
+      # cleanup when the block exits. 
+      #
+      # ruby_opts:: is passed to Sudo::Wrapper::new .      
+      def run(ruby_opts) # :yields: sudo
+        sudo = new(ruby_opts).start!
+        yield sudo
         sudo.stop!
       end 
-
 
       # currently unused
       #def load_features
@@ -42,8 +43,10 @@ module Sudo
 
       protected
 
-      # Not an instance method, so it may act as a finalizer
-      # (as in ObjectSpace.define_finalizer)
+      # Do the actual resources clean-up.
+      #
+      # Not an instance method, so it may act as a Finalizer
+      # (as in ::ObjectSpace::define_finalizer)
       def cleanup!(h)
         Sudo::System.kill   h[:pid]
         Sudo::System.unlink h[:socket]
@@ -65,6 +68,7 @@ module Sudo
 
     def server_uri; "drbunix:#{@socket}"; end
     
+    # Start the sudo-ed Ruby process.
     def start! 
       Sudo::System.check
       
@@ -96,7 +100,8 @@ module Sudo
     #  end
     #end 
 
-    #
+    # Load needed libraries in the DRb server. Usually you don't need
+    # to call this directly.
     def load_features
       unless $LOADED_FEATURES == @loaded_features
         new_features = $LOADED_FEATURES - @loaded_features
@@ -116,12 +121,15 @@ module Sudo
       )
     end
 
+    # Free the resources opened by this Wrapper: e.g. the sudo-ed
+    # ruby process and the Unix-domain socket used to communicate
+    # to it via ::DRb.
     def stop!
       self.class.cleanup!(:pid => @sudo_pid, :socket => @socket)
       @proxy = nil
-
     end
-
+ 
+    # Gives a copy of +object+ with root privileges.
     def [](object)
       if running?
         load_features
