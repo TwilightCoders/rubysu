@@ -30,7 +30,7 @@ module Sudo
       # cleanup when the block exits. 
       #
       # ruby_opts:: is passed to Sudo::Wrapper::new .      
-      def run(ruby_opts) # :yields: sudo
+      def run(ruby_opts = '') # :yields: sudo
         sudo = new(ruby_opts).start!
         yield sudo
         sudo.stop!
