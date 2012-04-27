@@ -41,8 +41,6 @@ module Sudo
       #  ObjectSpace.each_object(self).each{|x| x.load_features} 
       #end
 
-      protected
-
       # Do the actual resources clean-up.
       #
       # Not an instance method, so it may act as a Finalizer
