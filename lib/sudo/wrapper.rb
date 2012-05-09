@@ -8,7 +8,8 @@ require 'sudo/proxy'
 begin
   DRb.current_server
 rescue DRb::DRbServerNotFound
-  DRb.start_service
+  DRb.start_service nil, nil,
+    ACL.new(%w{ deny all allow 127.0.0.1 }, ACL::DENY_ALLOW)
 end
 
 module Sudo
@@ -27,18 +28,18 @@ module Sudo
     class << self
 
       # Yields a new running Sudo::Wrapper, and do all the necessary
-      # cleanup when the block exits. 
+      # cleanup when the block exits.
       #
-      # ruby_opts:: is passed to Sudo::Wrapper::new .      
+      # ruby_opts:: is passed to Sudo::Wrapper::new .
       def run(ruby_opts = '') # :yields: sudo
         sudo = new(ruby_opts).start!
         yield sudo
         sudo.stop!
-      end 
+      end
 
       # currently unused
       #def load_features
-      #  ObjectSpace.each_object(self).each{|x| x.load_features} 
+      #  ObjectSpace.each_object(self).each{|x| x.load_features}
       #end
 
       # Do the actual resources clean-up.
@@ -54,10 +55,10 @@ module Sudo
 
     # +ruby_opts+ are the command line options to the sudo ruby interpreter;
     # usually you don't need to specify stuff like "-rmygem/mylib", libraries
-    # will be sorta "inherited". 
-    def initialize(ruby_opts='') 
+    # will be sorta "inherited".
+    def initialize(ruby_opts='')
       @proxy            = nil
-      @socket           = "/tmp/rubysu-#{Process.pid}-#{object_id}" 
+      @socket           = "/tmp/rubysu-#{Process.pid}-#{object_id}"
       @sudo_pid         = nil
       @ruby_opts        = ruby_opts
       @loaded_features  = []
@@ -65,14 +66,14 @@ module Sudo
     end
 
     def server_uri; "drbunix:#{@socket}"; end
-    
+
     # Start the sudo-ed Ruby process.
-    def start! 
+    def start!
       Sudo::System.check
-      
-      @sudo_pid = spawn( 
-"sudo ruby -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
-      ) 
+
+      @sudo_pid = spawn(
+"#{SUDO_CMD} ruby -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
+      )
       Process.detach(@sudo_pid) if @sudo_pid # avoid zombies
       ObjectSpace.define_finalizer self, Finalizer.new(
           :pid => @sudo_pid, :socket => @socket
@@ -81,11 +82,11 @@ module Sudo
       if wait_for(:timeout => 1){File.exists? @socket}
         @proxy = DRbObject.new_with_uri(server_uri)
       else
-        raise RuntimeError, "Couldn't create DRb socket #{@socket}"  
+        raise RuntimeError, "Couldn't create DRb socket #{@socket}"
       end
 
       #set_load_path # apparently, we don't need this
-      
+
       load_features
 
       self
@@ -96,7 +97,7 @@ module Sudo
     #  ($LOAD_PATH - @load_path).reverse.each do |dir|
     #    @proxy.proxy Kernel, :eval, "$LOAD_PATH.unshift #{dir}"
     #  end
-    #end 
+    #end
 
     # Load needed libraries in the DRb server. Usually you don't need
     # to call this directly.
@@ -126,7 +127,7 @@ module Sudo
       self.class.cleanup!(:pid => @sudo_pid, :socket => @socket)
       @proxy = nil
     end
- 
+
     # Gives a copy of +object+ with root privileges.
     def [](object)
       if running?
@@ -152,4 +153,3 @@ module Sudo
 
   end
 end
-
