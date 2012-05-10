@@ -24,6 +24,5 @@ END
   s.rdoc_options = ["--charset=UTF-8", "--main", "README.rdoc"]
   s.extra_rdoc_files = ["README.rdoc"]
   s.require_paths = ["lib"]
-  s.rubygems_version = `gem -v`.strip
   s.summary = %q{Give Ruby objects superuser privileges}
 end
