@@ -1,17 +1,9 @@
 require 'drb/drb'
-require 'drb/acl'
 require 'sudo/support/kernel'
 require 'sudo/support/process'
 require 'sudo/constants'
 require 'sudo/system'
 require 'sudo/proxy'
-
-begin
-  DRb.current_server
-rescue DRb::DRbServerNotFound
-  DRb.start_service nil, nil,
-    ACL.new(%w{ deny all allow 127.0.0.1 }, ACL::DENY_ALLOW)
-end
 
 module Sudo
   class Wrapper
