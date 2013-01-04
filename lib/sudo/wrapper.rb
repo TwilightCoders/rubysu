@@ -30,11 +30,6 @@ module Sudo
         sudo.stop!
       end
 
-      # currently unused
-      #def load_features
-      #  ObjectSpace.each_object(self).each{|x| x.load_features}
-      #end
-
       # Do the actual resources clean-up.
       #
       # Not an instance method, so it may act as a Finalizer
@@ -84,13 +79,6 @@ module Sudo
 
       self
     end
-
-    # apparently, we don't need this
-    #def set_load_path
-    #  ($LOAD_PATH - @load_path).reverse.each do |dir|
-    #    @proxy.proxy Kernel, :eval, "$LOAD_PATH.unshift #{dir}"
-    #  end
-    #end
 
     # Load needed libraries in the DRb server. Usually you don't need
     # to call this directly.
