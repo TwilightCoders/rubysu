@@ -1,6 +1,8 @@
 examples/block.rb
 examples/dsl.rb
 examples/new.rb
+examples/writable_root.rb
+examples/lib/writable_root.rb
 libexec/server.rb
 lib/sudo/constants.rb
 lib/sudo/dsl.rb
