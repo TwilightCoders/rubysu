@@ -22,6 +22,12 @@ gets
 # Optional: it will be stopped automatically as soon as 'su' object gets out of scope
 su.stop!
 
+puts "Now trying with a block (Sudo::Wrapper.run)"
+writable_root = Sudo::Wrapper.run{|su| su[File].writable? '/'}
+puts "writable_root                                 = #{writable_root.inspect}"
+
+
+
 
 
 

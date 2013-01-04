@@ -26,8 +26,9 @@ module Sudo
       # ruby_opts:: is passed to Sudo::Wrapper::new .
       def run(ruby_opts = '') # :yields: sudo
         sudo = new(ruby_opts).start!
-        yield sudo
+        retval = yield sudo
         sudo.stop!
+        retval
       end
 
       # Do the actual resources clean-up.
