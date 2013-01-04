@@ -82,7 +82,7 @@ Access control is entirely delegated to +sudo+.
 
 {Guido De Rosa}[http://github.com/gderosa/].
 
-Sponsored by {VEMAR s.a.s.}[http://www.vemarsas.it/].
+Sponsored by {VEMAR s.a.s.}[http://www.vemarsas.it/]
 
 === CONTRIBUTORS
 
