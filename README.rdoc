@@ -76,18 +76,24 @@ Access control is entirely delegated to +sudo+.
 +sudo+ has a +-A+ option to accept password via an external program
 (maybe graphical): support this feature.
 
-== THANKS
+== CREDITS 
+
+=== AUTHOR
+
+{Guido De Rosa}[http://github.com/gderosa/].
+
+Sponsored by {VEMAR s.a.s.}[http://www.vemarsas.it/].
+
+=== CONTRIBUTORS
+
+{Robert M. Koch}[http://github.com/threadmetal/].
+
+=== THANKS
 
 Thanks to Tony Arcieri and Brian Candler for suggestions on 
 ruby-talk[http://www.ruby-forum.com/topic/262655].
 
-== AUTHOR
-
-{Guido De Rosa}[http://github.com/gderosa/].
-
-Sponsored by {VEMAR s.a.s.}[http://www.vemarsas.it/] 
-
-== LICENSE:
+=== COPYRIGHT
 
 (The MIT License)
 
@@ -111,8 +117,3 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-
-
-
