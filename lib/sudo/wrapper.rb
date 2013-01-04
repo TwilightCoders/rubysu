@@ -1,4 +1,5 @@
 require 'drb/drb'
+require 'drb/acl'
 require 'sudo/support/kernel'
 require 'sudo/support/process'
 require 'sudo/constants'
