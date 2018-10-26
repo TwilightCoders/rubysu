@@ -4,8 +4,8 @@ require 'sudo/constants'
 module Sudo
   module System
 
-    class ProcessStillExists  < RuntimeError; end
-    class FileStillExists     < RuntimeError; end
+    ProcessStillExists  = Class.new(RuntimeError)
+    FileStillExists     = Class.new(RuntimeError)
 
     class << self
 
@@ -13,8 +13,8 @@ module Sudo
         if pid and Process.exists? pid
           system "sudo kill     #{pid}"               or
           system "sudo kill -9  #{pid}"               or
-          raise ProcessStillExists, 
-            "Couldn't kill sudo process (PID=#{pid})" 
+          raise ProcessStillExists,
+            "Couldn't kill sudo process (PID=#{pid})"
         end
       end
 

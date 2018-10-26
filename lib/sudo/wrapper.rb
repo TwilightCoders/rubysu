@@ -8,15 +8,15 @@ require 'sudo/proxy'
 module Sudo
   class Wrapper
 
-    class RuntimeError              < RuntimeError;       end
-    class NotRunning                < RuntimeError;       end
-    class SudoFailed                < RuntimeError;       end
-    class SudoProcessExists         < RuntimeError;       end
-    class SudoProcessAlreadyExists  < SudoProcessExists;  end
-    class NoValidSocket             < RuntimeError;       end
-    class SocketNotFound            < NoValidSocket;      end
-    class NoValidSudoPid            < RuntimeError;       end
-    class SudoProcessNotFound       < NoValidSudoPid;     end
+    RuntimeError             = Class.new(RuntimeError)
+    NotRunning               = Class.new(RuntimeError)
+    SudoFailed               = Class.new(RuntimeError)
+    SudoProcessExists        = Class.new(RuntimeError)
+    SudoProcessAlreadyExists = Class.new(SudoProcessExists)
+    NoValidSocket            = Class.new(RuntimeError)
+    SocketNotFound           = Class.new(NoValidSocket)
+    NoValidSudoPid           = Class.new(RuntimeError)
+    SudoProcessNotFound      = Class.new(NoValidSudoPid)
 
     class << self
 
