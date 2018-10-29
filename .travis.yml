@@ -1,10 +1,14 @@
 language: ruby
-sudo: true # I mean... duh!
+sudo: required # I mean... duh!
 
 cache: bundler
 
+rvm:
+  - 2.5
+  - 2.4
+  - 2.3
+
 before_install:
-  - sudo apt-get install ruby-dev
   - gem update --system
   - gem install bundler
 
@@ -18,8 +22,3 @@ script:
 
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
-
-rvm:
-  - 2.5
-  - 2.4
-  - 2.3
