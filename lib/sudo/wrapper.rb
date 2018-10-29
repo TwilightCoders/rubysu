@@ -61,7 +61,7 @@ module Sudo
       Sudo::System.check
 
       @sudo_pid = spawn(
-"#{SUDO_CMD} ruby -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
+"#{SUDO_CMD} -E ruby -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
       Process.detach(@sudo_pid) if @sudo_pid # avoid zombies
       finalizer = Finalizer.new(pid: @sudo_pid, socket: @socket)
