@@ -1,4 +1,9 @@
 module Kernel
+
+  def self.su
+    yield
+  end
+
   def wait_for(conf)
     start = Time.now
     defaults = {
@@ -12,9 +17,9 @@ module Kernel
 
       break if    condition
       break if    conf[:timeout] and Time.now - start > conf[:timeout]
-      
+
       sleep       conf[:step]
     end
-    condition 
-  end 
+    condition
+  end
 end

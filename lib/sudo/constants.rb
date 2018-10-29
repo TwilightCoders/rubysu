@@ -1,10 +1,16 @@
+require 'pathname'
+
 module Sudo
 
-  VERSION       = '0.1.0'
-  ROOTDIR       = File.expand_path File.join File.dirname(__FILE__), '../..'
-  LIBDIR        = File.join ROOTDIR, 'lib'
-  SERVER_SCRIPT = File.join ROOTDIR, 'libexec/server.rb'
-  SUDO_CMD      = ENV['rvm_path'] ? 'rvmsudo' : 'sudo'
+  VERSION       = '0.2.0'
+
+  def self.root
+    @root ||= Pathname.new(File.expand_path('../../', __dir__))
+  end
+
+  LIBDIR        = root.join('lib')
+  SERVER_SCRIPT = root.join('libexec/server.rb')
+  SUDO_CMD      = `which sudo`.chomp
 
   RuntimeError = Class.new(RuntimeError)
 
