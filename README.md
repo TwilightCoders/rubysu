@@ -1,0 +1,120 @@
+[![Version      ](https://img.shields.io/gem/v/rubysu.svg?maxAge=2592000)](https://rubygems.org/gems/rubysu)
+[![Build Status ](https://travis-ci.org/TwilightCoders/rubysu.svg)](https://travis-ci.org/TwilightCoders/rubysu)
+[![Code Climate ](https://api.codeclimate.com/v1/badges/d04e8f3711f9bb3d67a7/maintainability)](https://codeclimate.com/github/TwilightCoders/rubysu/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/d04e8f3711f9bb3d67a7/test_coverage)](https://codeclimate.com/github/TwilightCoders/rubysu/test_coverage)
+[![Dependencies ](https://gemnasium.com/badges/github.com/TwilightCoders/rubysu.svg)](https://gemnasium.com/github.com/TwilightCoders/rubysu)
+
+# Ruby Sudo
+
+Give Ruby objects superuser privileges.
+
+Based on [dRuby](http://ruby-doc.org/ruby-1.9/classes/DRb.html) and
+[sudo](http://www.sudo.ws/).
+
+Only tested with [MRI 1.9](http://en.wikipedia.org/wiki/Ruby_MRI) .
+
+## REQUIREMENTS
+
+Your user must be allowed, in `/etc/sudoers`, to run `ruby` and `kill`
+commands as root.
+
+A password will be required from the console, or not, depending on the
+`NOPASSWD` options in `/etc/sudoers`.
+
+## USAGE
+
+Let's start with a trivial example:
+
+    require 'mygem/myclass'
+    require 'sudo'
+
+    obj   = MyGem::MyClass.new
+
+Now, create a Sudo::Wrapper object:
+
+    sudo  = Sudo::Wrapper.new
+
+Start the sudo-ed Ruby process:
+
+    # 'mygem/myclass' will be automatically required in the
+    # sudo DRb server
+
+    sudo.start!
+
+Use it!
+
+    sudo[obj].my_instance_method
+    sudo[MyClass].my_class_method
+
+When you've done, `stop!` it. Otherwise, that will be done (only) when  the
+`sudo` object gets garbage-collected.
+
+    sudo.stop!
+
+### With a block
+
+Use Sudo::Wrapper::run in this case.
+
+    require 'fileutils'
+    require 'sudo'
+
+    Sudo::Wrapper.run do |sudo|
+      sudo[FileUtils].mkdir_p '/ONLY/ROOT/CAN/DO/THAT'
+    end
+    # Sockets and processes are closed automatically when the block exits
+
+## PRINCIPLES OF OPERATION
+
+Spawns a sudo-ed Ruby process running a
+[DRb](http://ruby-doc.org/ruby-1.9/classes/DRb.html) server. Communication is
+done via a Unix socket (and, of course, permissions are set to `0600`).
+
+No long-running daemons involved, everything is created on demand.
+
+Access control is entirely delegated to `sudo`.
+
+## TODO
+
+`sudo` has a `-A` option to accept password via an external program (maybe
+graphical): support this feature.
+
+## CREDITS
+
+### AUTHOR
+
+[Guido De Rosa](http://github.com/gderosa/).
+
+Sponsored by [VEMAR s.a.s.](http://www.vemarsas.it/)
+
+### CONTRIBUTORS
+
+[Robert M. Koch](http://github.com/threadmetal/).
+
+### THANKS
+
+Thanks to Tony Arcieri and Brian Candler for suggestions on
+[ruby-talk](http://www.ruby-forum.com/topic/262655).
+
+### COPYRIGHT
+
+(The MIT License)
+
+Copyright (c) 2010, 2011, 2012, 2013 Guido De Rosa
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the 'Software'), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
