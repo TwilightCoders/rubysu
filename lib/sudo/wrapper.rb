@@ -60,6 +60,7 @@ module Sudo
     def start!
       Sudo::System.check
       spawn("#{SUDO_CMD} -E which ruby")
+      puts ENV.inspect
       @sudo_pid = spawn(
 "#{SUDO_CMD} -E ruby -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
