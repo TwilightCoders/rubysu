@@ -59,7 +59,7 @@ module Sudo
     # Start the sudo-ed Ruby process.
     def start!
       Sudo::System.check
-
+      spawn("#{SUDO_CMD} -E which ruby")
       @sudo_pid = spawn(
 "#{SUDO_CMD} -E ruby -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
