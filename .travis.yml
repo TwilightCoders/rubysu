@@ -4,6 +4,7 @@ sudo: true # I mean... duh!
 cache: bundler
 
 before_install:
+  - sudo apt-get install ruby-dev
   - gem update --system
   - gem install bundler
 
