@@ -59,10 +59,10 @@ module Sudo
     # Start the sudo-ed Ruby process.
     def start!
       Sudo::System.check
-      spawn("#{SUDO_CMD} -E which ruby")
-      puts ENV.inspect
+      # spawn("#{SUDO_CMD} -E which ruby")
+      # puts ENV.inspect
       @sudo_pid = spawn(
-"#{SUDO_CMD} -E ruby -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
+"#{SUDO_CMD} -E #{RUBY_CMD} -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
       Process.detach(@sudo_pid) if @sudo_pid # avoid zombies
       finalizer = Finalizer.new(pid: @sudo_pid, socket: @socket)

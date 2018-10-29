@@ -11,6 +11,7 @@ module Sudo
   LIBDIR        = root.join('lib')
   SERVER_SCRIPT = root.join('libexec/server.rb')
   SUDO_CMD      = `which sudo`.chomp
+  RUBY_CMD      = `which ruby`.chomp
 
   RuntimeError = Class.new(RuntimeError)
 
