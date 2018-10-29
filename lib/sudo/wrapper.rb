@@ -32,13 +32,6 @@ module Sudo
         retval
       end
 
-      def do(ruby_opts: '', load_gems: true, password: nil) # :yields: sudo
-        sudo = new(ruby_opts: ruby_opts, load_gems: load_gems, password: password).start!
-        sudo.do(&block)
-        sudo.stop!
-        retval
-      end
-
       # Do the actual resources clean-up.
       #
       # Not an instance method, so it may act as a Finalizer
@@ -60,11 +53,6 @@ module Sudo
       @ruby_opts        = ruby_opts
       @load_gems        = load_gems == true
     end
-
-
-    # def do(&block)
-    #   @proxy.proxy(Kernel, :su, &block)
-    # end
 
     def server_uri; "drbunix:#{@socket}"; end
 
@@ -94,32 +82,6 @@ module Sudo
       load_gems if load_gems?
     end
 
-    def proxy_features
-      @proxy.loaded_features
-    end
-
-    # # Load needed libraries in the DRb server. Usually you don't need
-    # # to call this directly.
-    # def load_features
-    #   loop do
-    #     count = proxy_features.count
-    #     featues = features_needed.dup
-    #     featues.each do |feature|
-    #       begin
-    #         loaded = @proxy.proxy(Kernel, :require, feature)
-    #         # binding.pry unless loaded
-    #         # puts "Loading: #{feature} => #{loaded}"
-    #       rescue NameError => e
-    #         # puts "Skipping: #{feature} => #{loaded}"
-    #       end
-    #     end
-    #     if proxy_features.count <= count || !features.any?
-    #       break
-    #     end
-    #     count = proxy_features.count
-    #   end
-    # end
-
     def load_gems?
       @load_gems == true
     end
@@ -145,17 +107,6 @@ module Sudo
           end
         end
       end
-    end
-
-    def features_needed
-      features - @proxy.features
-    end
-
-    def features
-      # .map { |feature| File.dirname(feature) }.
-      $LOADED_FEATURES.
-        select { |feature| feature.include?('gems') && feature =~ /.rb$/}.
-        uniq.sort
     end
 
     def load_paths

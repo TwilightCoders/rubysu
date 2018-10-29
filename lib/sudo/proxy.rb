@@ -17,6 +17,10 @@ module Sudo
       object.send method, *args, &blk
     end
 
+    def call(object, method=:itself, &blk)
+      object.send method, &blk
+    end
+
     # def loaded_features
     #   $LOADED_FEATURES
     # end

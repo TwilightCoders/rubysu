@@ -1,7 +1,7 @@
 module Kernel
 
-  def self.su
-    yield
+  def self.foo(&block)
+    block.call
   end
 
   def wait_for(conf)
