@@ -4,8 +4,8 @@ require 'sudo/constants'
 module Sudo
   module System
 
-    class ProcessStillExists  < RuntimeError; end
-    class FileStillExists     < RuntimeError; end
+    ProcessStillExists  = Class.new(RuntimeError)
+    FileStillExists     = Class.new(RuntimeError)
 
     class << self
 
