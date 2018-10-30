@@ -6,6 +6,7 @@ require 'sudo/system'
 require 'sudo/proxy'
 
 module Sudo
+
   class Wrapper
 
     RuntimeError             = Class.new(RuntimeError)

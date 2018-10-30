@@ -12,9 +12,9 @@ module Kernel
 
       break if    condition
       break if    conf[:timeout] and Time.now - start > conf[:timeout]
-      
+
       sleep       conf[:step]
     end
-    condition 
-  end 
+    condition
+  end
 end

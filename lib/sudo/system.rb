@@ -13,8 +13,8 @@ module Sudo
         if pid and Process.exists? pid
           system "sudo kill     #{pid}"               or
           system "sudo kill -9  #{pid}"               or
-          raise ProcessStillExists, 
-            "Couldn't kill sudo process (PID=#{pid})" 
+          raise ProcessStillExists,
+            "Couldn't kill sudo process (PID=#{pid})"
         end
       end
 
