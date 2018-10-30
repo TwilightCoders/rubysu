@@ -1,4 +1,3 @@
-require 'sudo/support/object'
 
 module Sudo
 
