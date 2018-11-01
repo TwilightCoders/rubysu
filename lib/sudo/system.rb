@@ -26,7 +26,7 @@ module Sudo
 
       # just to check if we can sudo; and we'll receive a sudo token
       def check
-        raise SudoFailed unless system "sudo ruby -e ''"
+        raise SudoFailed unless system "#{SUDO_CMD} -E #{RUBY_CMD} -e ''"
       end
 
     end
