@@ -11,18 +11,16 @@ module Sudo
 
       def kill(pid)
         if pid and Process.exists? pid
-          system "sudo kill     #{pid}"               or
-          system "sudo kill -9  #{pid}"               or
-          raise ProcessStillExists,
-            "Couldn't kill sudo process (PID=#{pid})"
+          system "sudo kill     #{pid}" or
+          system "sudo kill -9  #{pid}" or
+          raise ProcessStillExists, "Couldn't kill sudo process (PID=#{pid})"
         end
       end
 
       def unlink(file)
         if file and File.exists? file
-          system "sudo rm -f #{file}"                 or
-          raise FileStillExists,
-              "Couldn't delete #{file}"
+          system("sudo rm -f #{file}") or
+          raise(FileStillExists, "Couldn't delete #{file}")
         end
       end
 
