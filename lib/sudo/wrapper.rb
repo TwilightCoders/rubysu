@@ -27,9 +27,11 @@ module Sudo
       # ruby_opts:: is passed to Sudo::Wrapper::new .
       def run(ruby_opts: '', load_gems: true) # :yields: sudo
         sudo = new(ruby_opts: ruby_opts, load_gems: load_gems).start!
-        retval = yield sudo
+        yield sudo
+      rescue Exception => e # Bubble all exceptions...
+        raise e
+      ensure # and ensure sudo stops
         sudo.stop!
-        retval
       end
 
       # Do the actual resources clean-up.
