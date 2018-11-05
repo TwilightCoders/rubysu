@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
                         Give Ruby objects superuser privileges.
                         Based on dRuby and sudo (the Unix program).
                       DESC
-  spec.homepage     = "https://github.com/twilightcoders/rubysu"
+  spec.homepage     = "https://github.com/gderosa/rubysu"
   spec.license      = "MIT"
 
   spec.metadata['allowed_push_host'] = 'https://rubygems.org'
