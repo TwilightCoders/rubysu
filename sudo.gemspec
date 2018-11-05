@@ -5,7 +5,7 @@ Gem::Specification.new do |spec|
   spec.name         = "sudo"
   spec.version      = Sudo::VERSION
   spec.authors      = ["Guido De Rosa"]
-  spec.email        = ["guido.derosa@vemarsas.it"]
+  spec.email        = ["guidoderosa@gmail.com"]
 
   spec.summary      = %q{Give Ruby objects superuser privileges}
   spec.description  = <<~DESC
