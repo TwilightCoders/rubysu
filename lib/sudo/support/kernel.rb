@@ -1,20 +1,12 @@
-module Kernel
-  def wait_for(conf)
-    start = Time.now
-    defaults = {
-      :timeout  => nil,
-      :step     => 0.125
-    }
-    conf = defaults.update conf
-    condition = false
-    loop do
-      condition = yield
+require 'timeout'
 
-      break if    condition
-      break if    conf[:timeout] and Time.now - start > conf[:timeout]
-      
-      sleep       conf[:step]
+module Kernel
+  def wait_for(timeout: nil, step: 0.125)
+    Timeout::timeout(timeout) do
+      condition = false
+      sleep(step) until (condition = yield) and return condition
     end
-    condition 
-  end 
+  rescue Timeout::Error
+    return false
+  end
 end

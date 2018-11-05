@@ -6,17 +6,18 @@ require 'sudo/system'
 require 'sudo/proxy'
 
 module Sudo
+
   class Wrapper
 
-    class RuntimeError              < RuntimeError;       end
-    class NotRunning                < RuntimeError;       end
-    class SudoFailed                < RuntimeError;       end
-    class SudoProcessExists         < RuntimeError;       end
-    class SudoProcessAlreadyExists  < SudoProcessExists;  end
-    class NoValidSocket             < RuntimeError;       end
-    class SocketNotFound            < NoValidSocket;      end
-    class NoValidSudoPid            < RuntimeError;       end
-    class SudoProcessNotFound       < NoValidSudoPid;     end
+    RuntimeError             = Class.new(RuntimeError)
+    NotRunning               = Class.new(RuntimeError)
+    SudoFailed               = Class.new(RuntimeError)
+    SudoProcessExists        = Class.new(RuntimeError)
+    SudoProcessAlreadyExists = Class.new(SudoProcessExists)
+    NoValidSocket            = Class.new(RuntimeError)
+    SocketNotFound           = Class.new(NoValidSocket)
+    NoValidSudoPid           = Class.new(RuntimeError)
+    SudoProcessNotFound      = Class.new(NoValidSudoPid)
 
     class << self
 
@@ -24,11 +25,13 @@ module Sudo
       # cleanup when the block exits.
       #
       # ruby_opts:: is passed to Sudo::Wrapper::new .
-      def run(ruby_opts = '') # :yields: sudo
-        sudo = new(ruby_opts).start!
-        retval = yield sudo
+      def run(ruby_opts: '', load_gems: true) # :yields: sudo
+        sudo = new(ruby_opts: ruby_opts, load_gems: load_gems).start!
+        yield sudo
+      rescue Exception => e # Bubble all exceptions...
+        raise e
+      ensure # and ensure sudo stops
         sudo.stop!
-        retval
       end
 
       # Do the actual resources clean-up.
@@ -45,13 +48,12 @@ module Sudo
     # +ruby_opts+ are the command line options to the sudo ruby interpreter;
     # usually you don't need to specify stuff like "-rmygem/mylib", libraries
     # will be sorta "inherited".
-    def initialize(ruby_opts='')
+    def initialize(ruby_opts: '', load_gems: true)
       @proxy            = nil
       @socket           = "/tmp/rubysu-#{Process.pid}-#{object_id}"
       @sudo_pid         = nil
       @ruby_opts        = ruby_opts
-      @loaded_features  = []
-      # @load_path        = [] # currentl unused
+      @load_gems        = load_gems == true
     end
 
     def server_uri; "drbunix:#{@socket}"; end
@@ -61,37 +63,21 @@ module Sudo
       Sudo::System.check
 
       @sudo_pid = spawn(
-"#{SUDO_CMD} ruby -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
+"#{SUDO_CMD} -E #{RUBY_CMD} -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
       )
       Process.detach(@sudo_pid) if @sudo_pid # avoid zombies
-      ObjectSpace.define_finalizer self, Finalizer.new(
-          :pid => @sudo_pid, :socket => @socket
-      )
+      finalizer = Finalizer.new(pid: @sudo_pid, socket: @socket)
+      ObjectSpace.define_finalizer(self, finalizer)
 
-      if wait_for(:timeout => 1){File.exists? @socket}
+      if wait_for(timeout: 1){File.exists? @socket}
         @proxy = DRbObject.new_with_uri(server_uri)
       else
         raise RuntimeError, "Couldn't create DRb socket #{@socket}"
       end
 
-      #set_load_path # apparently, we don't need this
-
-      load_features
+      load!
 
       self
-    end
-
-    # Load needed libraries in the DRb server. Usually you don't need
-    # to call this directly.
-    def load_features
-      unless $LOADED_FEATURES == @loaded_features
-        new_features = $LOADED_FEATURES - @loaded_features
-        new_features.each do |feature|
-          @proxy.proxy Kernel, :require, feature
-          @loaded_features << feature
-        end
-        #@loaded_features += new_features
-      end
     end
 
     def running?
@@ -106,14 +92,14 @@ module Sudo
     # ruby process and the Unix-domain socket used to communicate
     # to it via ::DRb.
     def stop!
-      self.class.cleanup!(:pid => @sudo_pid, :socket => @socket)
+      self.class.cleanup!(pid: @sudo_pid, socket: @socket)
       @proxy = nil
     end
 
     # Gives a copy of +object+ with root privileges.
     def [](object)
       if running?
-        load_features
+        load!
         MethodProxy.new object, @proxy
       else
         raise NotRunning
@@ -130,6 +116,45 @@ module Sudo
       # mimic proc-like behavior (walk like a duck)
       def call(*args)
         Sudo::Wrapper.cleanup! @data
+      end
+    end
+
+    protected
+
+    def load!
+      load_gems if load_gems?
+    end
+
+    def load_gems?
+      @load_gems == true
+    end
+
+    def prospective_gems
+      (Gem.loaded_specs.keys - @proxy.loaded_specs.keys)
+    end
+
+    # Load needed libraries in the DRb server. Usually you don't need
+    def load_gems
+      load_paths
+      prospective_gems.each do |prospect|
+        gem_name = prospect.dup
+        begin
+          loaded = @proxy.proxy(Kernel, :require, gem_name)
+          # puts "Loading Gem: #{gem_name} => #{loaded}"
+        rescue LoadError, NameError => e
+          old_gem_name = gem_name.dup
+          gem_name.gsub!('-', '/')
+          retry if old_gem_name != gem_name
+        end
+      end
+    end
+
+    def load_paths
+      host_paths = $LOAD_PATH
+      proxy_paths = @proxy.load_path
+      diff_paths = host_paths - proxy_paths
+      diff_paths.each do |path|
+        @proxy.add_load_path(path)
       end
     end
 
