@@ -1,7 +1,7 @@
 [![Version      ](https://img.shields.io/gem/v/sudo.svg?maxAge=2592000)](https://rubygems.org/gems/sudo)
-[![Build Status ](https://travis-ci.org/TwilightCoders/rubysu.svg)](https://travis-ci.org/TwilightCoders/rubysu)
-[![Code Climate ](https://api.codeclimate.com/v1/badges/d04e8f3711f9bb3d67a7/maintainability)](https://codeclimate.com/github/TwilightCoders/rubysu/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/d04e8f3711f9bb3d67a7/test_coverage)](https://codeclimate.com/github/TwilightCoders/rubysu/test_coverage)
+[![Build Status](https://travis-ci.com/gderosa/rubysu.svg?branch=master)](https://travis-ci.com/gderosa/rubysu)
+[![Maintainability](https://api.codeclimate.com/v1/badges/3fdebfb836bebb531fb3/maintainability)](https://codeclimate.com/github/gderosa/rubysu/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/3fdebfb836bebb531fb3/test_coverage)](https://codeclimate.com/github/gderosa/rubysu/test_coverage)
 
 # Ruby Sudo
 
@@ -77,9 +77,27 @@ If you'd like to prevent the loading of `gems` currently loaded from the calling
 `sudo` has a `-A` option to accept password via an external program (maybe
 graphical): support this feature.
 
+## Credits
+
+### Author
+
+Guido De Rosa ([@gderosa](http://github.com/gderosa/)).
+
+Originally sponsored by [@vemarsas](https://github.com/vemarsas).
+
+### Contributors
+
+Dale ([@voltechs](https://github.com/voltechs))
+
+Robert M. Koch ([@threadmetal](https://github.com/threadmetal))
+
+### Other aknowledgements
+Thanks to Tony Arcieri and Brian Candler for suggestions on 
+[ruby-talk](http://www.ruby-forum.com/topic/262655).
+
 ## Contributing
 
-1. Fork it ( https://github.com/TwilightCoders/rubysu/fork )
+1. Fork it ( https://github.com/gderosa/rubysu/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)

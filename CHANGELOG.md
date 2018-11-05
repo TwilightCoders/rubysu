@@ -1,6 +1,6 @@
 # Sudo
 
-## 0.0.4 _(Unreleased)_
+## 0.2.0 _(November 05, 2018)_
 - Modernized
 - Tests
 - Works on ruby 2.3 - 2.5
