@@ -69,7 +69,7 @@ module Sudo
       finalizer = Finalizer.new(pid: @sudo_pid, socket: @socket)
       ObjectSpace.define_finalizer(self, finalizer)
 
-      if wait_for(timeout: 1){File.exists? @socket}
+      if wait_for(timeout: 1, &method(:socket?))
         @proxy = DRbObject.new_with_uri(server_uri)
       else
         raise RuntimeError, "Couldn't create DRb socket #{@socket}"
@@ -78,6 +78,10 @@ module Sudo
       load!
 
       self
+    end
+
+    def socket?
+      File.exists?(@socket)
     end
 
     def running?
