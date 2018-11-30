@@ -17,6 +17,19 @@ module Sudo
         end
       end
 
+      def command(ruby_opts, socket)
+        [
+          SUDO_CMD,
+          '-E',
+          RUBY_CMD,
+          "-I#{LIBDIR}",
+          ruby_opts,
+          SERVER_SCRIPT,
+          socket,
+          Process.uid
+        ].join(' ')
+      end
+
       def unlink(file)
         if file and File.exists? file
           system("sudo rm -f #{file}") or
