@@ -86,7 +86,7 @@ See LICENSE.
 
 ### Contributors
 
-Dale ([@voltechs](https://github.com/voltechs))
+Dale Stevens ([@voltechs](https://github.com/voltechs))
 
 Robert M. Koch ([@threadmetal](https://github.com/threadmetal))
 
@@ -94,7 +94,7 @@ Robert M. Koch ([@threadmetal](https://github.com/threadmetal))
 Thanks to Tony Arcieri and Brian Candler for suggestions on 
 [ruby-talk](http://www.ruby-forum.com/topic/262655).
 
-Initially developed by G. D. while working at @vemarsas.
+Initially developed by G. D. while working at [@vemarsas](https://github.com/vemarsas).
 
 ## Contributing
 
