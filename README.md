@@ -78,11 +78,11 @@ graphical): support this feature.
 
 ## Credits
 
-### Author
+### Author and Copyright
 
 Guido De Rosa ([@gderosa](http://github.com/gderosa/)).
 
-Originally sponsored by [@vemarsas](https://github.com/vemarsas).
+See LICENSE.
 
 ### Contributors
 
@@ -93,6 +93,8 @@ Robert M. Koch ([@threadmetal](https://github.com/threadmetal))
 ### Other aknowledgements
 Thanks to Tony Arcieri and Brian Candler for suggestions on 
 [ruby-talk](http://www.ruby-forum.com/topic/262655).
+
+Initially developed by G. D. while working at @vemarsas.
 
 ## Contributing
 
