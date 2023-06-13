@@ -1,5 +1,8 @@
 # Sudo
 
+## 0.3.0 _(...)_
+- Works on ruby 3.2
+
 ## 0.2.0 _(November 05, 2018)_
 - Modernized
 - Tests
