@@ -18,7 +18,7 @@ module Sudo
       end
 
       def unlink(file)
-        if file and File.exists? file
+        if file and File.exist? file
           system("sudo rm -f #{file}") or
           raise(FileStillExists, "Couldn't delete #{file}")
         end
