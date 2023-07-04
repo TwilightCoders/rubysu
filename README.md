@@ -8,7 +8,7 @@ Give Ruby objects superuser privileges.
 
 Based on [dRuby](http://ruby-doc.org/stdlib-2.5.3/libdoc/drb/rdoc/DRb.html) and [sudo](http://www.sudo.ws/).
 
-Only tested with [MRI](http://en.wikipedia.org/wiki/Ruby_MRI). (2.3, 2.4 and 2.5)
+Only tested with [MRI](http://en.wikipedia.org/wiki/Ruby_MRI).
 
 ## Usage
 
@@ -89,6 +89,8 @@ See LICENSE.
 Dale Stevens ([@voltechs](https://github.com/voltechs))
 
 Robert M. Koch ([@threadmetal](https://github.com/threadmetal))
+
+Wolfgang Teuber ([@wteuber](https://github.com/wteuber))
 
 ### Other aknowledgements
 Thanks to Tony Arcieri and Brian Candler for suggestions on 
