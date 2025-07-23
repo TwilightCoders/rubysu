@@ -1,6 +1,7 @@
-[![Gem Version](https://badge.fury.io/rb/sudo.svg)](https://badge.fury.io/rb/sudo)[![Build Status](https://travis-ci.com/gderosa/rubysu.svg?branch=master)](https://travis-ci.com/gderosa/rubysu)
-[![Maintainability](https://api.codeclimate.com/v1/badges/3fdebfb836bebb531fb3/maintainability)](https://codeclimate.com/github/gderosa/rubysu/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/3fdebfb836bebb531fb3/test_coverage)](https://codeclimate.com/github/gderosa/rubysu/test_coverage)
+[![Gem Version](https://badge.fury.io/rb/sudo.svg)](https://badge.fury.io/rb/sudo)
+[![CI](https://github.com/TwilightCoders/rubysu/actions/workflows/ci.yml/badge.svg)](https://github.com/TwilightCoders/rubysu/actions/workflows/ci.yml)
+[![Maintainability](https://qlty.sh/badges/e63e40be-4d72-4519-ad77-d4f94803a7b9/maintainability.svg)](https://qlty.sh/TwilightCoders/rubysu)
+[![Test Coverage](https://qlty.sh/badges/e63e40be-4d72-4519-ad77-d4f94803a7b9/test_coverage.svg)](https://qlty.sh/TwilightCoders/rubysu)
 
 # Ruby Sudo
 
