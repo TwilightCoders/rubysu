@@ -8,7 +8,7 @@ module Process
     def exists?(pid)
       Process.getpgid(pid)
       true
-    rescue Errno::ESRCH
+    rescue Errno::ESRCH, TypeError
       false
     end
   end

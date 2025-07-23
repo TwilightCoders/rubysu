@@ -29,7 +29,7 @@ module Sudo
       rescue Exception => e # Bubble all exceptions...
         raise e
       ensure # and ensure sudo stops
-        sudo.stop!
+        sudo&.stop!
       end
 
       # Do the actual resources clean-up.
@@ -68,7 +68,7 @@ module Sudo
       finalizer = Finalizer.new(pid: @sudo_pid, socket: @socket)
       ObjectSpace.define_finalizer(self, finalizer)
 
-      if wait_for(timeout: @timeout){File.exist? @socket}
+      if wait_for(timeout: @timeout) { socket? }
         @proxy = DRbObject.new_with_uri(server_uri)
       else
         raise RuntimeError, "Couldn't create DRb socket #{@socket} within #{@timeout} seconds"
@@ -79,12 +79,12 @@ module Sudo
       self
     end
 
+    def socket?
+      File.exist?(@socket)
+    end
+
     def running?
-      true if (
-        @sudo_pid and Process.exists? @sudo_pid and
-        @socket   and File.exist?    @socket   and
-        @proxy
-      )
+      Process.exists?(@sudo_pid) && socket? && @proxy
     end
 
     # Free the resources opened by this Wrapper: e.g. the sudo-ed
