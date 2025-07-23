@@ -20,8 +20,12 @@ module Sudo
     end
 
     def loaded_specs
-      # Something's weird with this method when called outside
-      Gem.loaded_specs.to_a.to_h
+      # Return only the keys (gem names) to avoid marshaling StubSpecification objects
+      # which can fail in newer Bundler versions
+      Gem.loaded_specs.keys
+    rescue => e
+      warn "Warning: Could not get loaded gem specs (#{e.class}: #{e.message}). Returning empty list."
+      []
     end
 
     def load_path
