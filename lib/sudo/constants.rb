@@ -11,6 +11,7 @@ module Sudo
   SERVER_SCRIPT = root.join('libexec/server.rb')
   SUDO_CMD      = `which sudo`.chomp
   RUBY_CMD      = `which ruby`.chomp
+  ASK_PATH_CMD  = `which ssh-askpass`.chomp
 
   RuntimeError = Class.new(RuntimeError)
 end

@@ -42,6 +42,11 @@ module Sudo
       def command_base(env = {})
         cmd_args = [SUDO_CMD]
 
+        if defined?(Sudo.configuration) && Sudo.configuration.sudo_askpass
+          env["SUDO_ASKPASS"] = Sudo.configuration.sudo_askpass
+          cmd_args << "-A"
+        end
+
         cmd_args.concat(["-E", RUBY_CMD])
         [cmd_args, env]
       end

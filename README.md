@@ -72,11 +72,6 @@ If you'd like to pass options to the sudo-spawned ruby process, pass them as a s
 
 If you'd like to prevent the loading of `gems` currently loaded from the calling program, pass `false` to `load_gems`. This will give your sudo process a unmodifed environment. The only things required via the sudo process are `'drb/drb'`, `'fileutils'`, and of course `'sudo'`.
 
-## Todo
-
-`sudo` has a `-A` option to accept password via an external program (maybe
-graphical): support this feature.
-
 ## Credits
 
 ### Author and Copyright
