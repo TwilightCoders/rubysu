@@ -6,9 +6,7 @@ require 'sudo/system'
 require 'sudo/proxy'
 
 module Sudo
-
   class Wrapper
-
     RuntimeError             = Class.new(RuntimeError)
     NotRunning               = Class.new(RuntimeError)
     SudoFailed               = Class.new(RuntimeError)
@@ -20,7 +18,6 @@ module Sudo
     SudoProcessNotFound      = Class.new(NoValidSudoPid)
 
     class << self
-
       # Yields a new running Sudo::Wrapper, and do all the necessary
       # cleanup when the block exits.
       #
@@ -42,7 +39,6 @@ module Sudo
         Sudo::System.kill   h[:pid]
         Sudo::System.unlink h[:socket]
       end
-
     end
 
     # +ruby_opts+ are the command line options to the sudo ruby interpreter;
@@ -62,9 +58,8 @@ module Sudo
     def start!
       Sudo::System.check
 
-      @sudo_pid = spawn(
-"#{SUDO_CMD} -E #{RUBY_CMD} -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
-      )
+      @sudo_pid = spawn("#{SUDO_CMD} -E #{RUBY_CMD} -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}")
+
       Process.detach(@sudo_pid) if @sudo_pid # avoid zombies
       finalizer = Finalizer.new(pid: @sudo_pid, socket: @socket)
       ObjectSpace.define_finalizer(self, finalizer)
@@ -137,15 +132,18 @@ module Sudo
     def load_gems
       load_paths
       prospective_gems.each do |prospect|
-        gem_name = prospect.dup
-        begin
-          loaded = @proxy.proxy(Kernel, :require, gem_name)
-          # puts "Loading Gem: #{gem_name} => #{loaded}"
-        rescue LoadError, NameError => e
-          old_gem_name = gem_name.dup
-          gem_name.gsub!('-', '/')
-          retry if old_gem_name != gem_name
-        end
+        try_gem_variants(prospect)
+      end
+    end
+
+    private
+
+    def try_gem_variants(gem_name)
+      [gem_name, gem_name.gsub('-', '/')].uniq.each do |variant|
+        @proxy.proxy(Kernel, :require, variant)
+        return # Success, stop trying variants
+      rescue LoadError, NameError
+        # Try next variant
       end
     end
 
@@ -157,6 +155,5 @@ module Sudo
         @proxy.add_load_path(path)
       end
     end
-
   end
 end
