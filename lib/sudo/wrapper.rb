@@ -23,8 +23,8 @@ module Sudo
       # cleanup when the block exits.
       #
       # ruby_opts:: is passed to Sudo::Wrapper::new .
-      def run(ruby_opts: '', load_gems: true) # :yields: sudo
-        sudo = new(ruby_opts: ruby_opts, load_gems: load_gems).start!
+      def run(ruby_opts: '', load_gems: true, timeout: nil, retries: nil) # :yields: sudo
+        sudo = new(ruby_opts: ruby_opts, load_gems: load_gems, timeout: timeout, retries: retries).start!
         yield sudo
       rescue Exception => e # Bubble all exceptions...
         raise e
@@ -45,12 +45,14 @@ module Sudo
     # +ruby_opts+ are the command line options to the sudo ruby interpreter;
     # usually you don't need to specify stuff like "-rmygem/mylib", libraries
     # will be sorta "inherited".
-    def initialize(ruby_opts: '', load_gems: true)
+    def initialize(ruby_opts: '', load_gems: true, timeout: nil, retries: nil)
       @proxy            = nil
       @socket           = Sudo.configuration.socket_path(Process.pid, SecureRandom.hex(8))
       @sudo_pid         = nil
       @ruby_opts        = ruby_opts
       @load_gems        = load_gems == true
+      @timeout          = timeout || Sudo.configuration.timeout
+      @retries          = retries || Sudo.configuration.retries
     end
 
     def server_uri; "drbunix:#{@socket}"; end
@@ -65,10 +67,10 @@ module Sudo
       finalizer = Finalizer.new(pid: @sudo_pid, socket: @socket)
       ObjectSpace.define_finalizer(self, finalizer)
 
-      if wait_for(timeout: 1){File.exist? @socket}
+      if wait_for(timeout: @timeout){File.exist? @socket}
         @proxy = DRbObject.new_with_uri(server_uri)
       else
-        raise RuntimeError, "Couldn't create DRb socket #{@socket}"
+        raise RuntimeError, "Couldn't create DRb socket #{@socket} within #{@timeout} seconds"
       end
 
       load!
