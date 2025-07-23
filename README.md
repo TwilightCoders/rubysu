@@ -8,7 +8,7 @@ Give Ruby objects superuser privileges.
 
 Based on [dRuby](http://ruby-doc.org/stdlib-2.5.3/libdoc/drb/rdoc/DRb.html) and [sudo](http://www.sudo.ws/).
 
-Only tested with [MRI](http://en.wikipedia.org/wiki/Ruby_MRI).
+Tested with [MRI](http://en.wikipedia.org/wiki/Ruby_MRI) Ruby 2.7, 3.0, 3.1, 3.2, and 3.3.
 
 ## Usage
 
@@ -93,14 +93,16 @@ Robert M. Koch ([@threadmetal](https://github.com/threadmetal))
 Wolfgang Teuber ([@wteuber](https://github.com/wteuber))
 
 ### Other aknowledgements
-Thanks to Tony Arcieri and Brian Candler for suggestions on 
+
+
+Thanks to Tony Arcieri and Brian Candler for suggestions on
 [ruby-talk](http://www.ruby-forum.com/topic/262655).
 
 Initially developed by G. D. while working at [@vemarsas](https://github.com/vemarsas).
 
 ## Contributing
 
-1. Fork it ( https://github.com/gderosa/rubysu/fork )
+1. Fork it ( https://github.com/TwilightCoders/rubysu/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
