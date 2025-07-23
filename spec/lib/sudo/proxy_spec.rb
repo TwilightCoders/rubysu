@@ -6,9 +6,10 @@ describe Sudo::Proxy do
   end
 
   context '#loaded_specs' do
-
-    it 'returns a hash' do
-      expect(subject.loaded_specs).to be_a(Hash)
+    it 'returns an array of gem names' do
+      expect(subject.loaded_specs).to be_a(Array)
+      expect(subject.loaded_specs).to_not be_empty
+      expect(subject.loaded_specs).to all(be_a(String))
     end
   end
 
