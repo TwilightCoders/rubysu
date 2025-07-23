@@ -1,18 +1,21 @@
-
 module Sudo
-
   class MethodProxy
     def initialize(object, proxy)
       @object = object
       @proxy = proxy
     end
-    def method_missing(method=:itself, *args, &blk)
+
+    def method_missing(method = :itself, *args, &blk)
       @proxy.proxy @object, method, *args, &blk
+    end
+
+    def respond_to_missing?(method, include_private = false)
+      @object.respond_to?(method, include_private) || super
     end
   end
 
   class Proxy
-    def proxy(object, method=:itself, *args, &blk)
+    def proxy(object, method = :itself, *args, &blk)
       object.send method, *args, &blk
     end
 
@@ -29,5 +32,4 @@ module Sudo
       $LOAD_PATH << path
     end
   end
-
 end

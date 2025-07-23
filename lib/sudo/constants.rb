@@ -1,8 +1,7 @@
 require 'pathname'
 
 module Sudo
-
-  VERSION       = '0.3.0'
+  VERSION = '0.3.0'
 
   def self.root
     @root ||= Pathname.new(File.expand_path('../../', __dir__))
@@ -14,5 +13,4 @@ module Sudo
   RUBY_CMD      = `which ruby`.chomp
 
   RuntimeError = Class.new(RuntimeError)
-
 end
