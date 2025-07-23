@@ -2,6 +2,7 @@ require 'drb/drb'
 require 'sudo/support/kernel'
 require 'sudo/support/process'
 require 'sudo/constants'
+require 'sudo/configuration'
 require 'sudo/system'
 require 'sudo/proxy'
 
@@ -46,7 +47,7 @@ module Sudo
     # will be sorta "inherited".
     def initialize(ruby_opts: '', load_gems: true)
       @proxy            = nil
-      @socket           = "/tmp/rubysu-#{Process.pid}-#{object_id}"
+      @socket           = Sudo.configuration.socket_path(Process.pid, SecureRandom.hex(8))
       @sudo_pid         = nil
       @ruby_opts        = ruby_opts
       @load_gems        = load_gems == true
