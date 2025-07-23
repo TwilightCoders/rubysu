@@ -23,13 +23,13 @@ module Sudo
       # cleanup when the block exits.
       #
       # ruby_opts:: is passed to Sudo::Wrapper::new .
-      def run(ruby_opts: '', load_gems: true, timeout: nil, retries: nil) # :yields: sudo
-        sudo = new(ruby_opts: ruby_opts, load_gems: load_gems, timeout: timeout, retries: retries).start!
+      def run(ruby_opts: '', **config) # :yields: sudo
+        sudo = new(ruby_opts: ruby_opts, config: Configuration.new(config)).start!
         yield sudo
       rescue Exception => e # Bubble all exceptions...
         raise e
       ensure # and ensure sudo stops
-        sudo&.stop!
+        sudo.stop! if sudo
       end
 
       # Do the actual resources clean-up.
@@ -45,14 +45,15 @@ module Sudo
     # +ruby_opts+ are the command line options to the sudo ruby interpreter;
     # usually you don't need to specify stuff like "-rmygem/mylib", libraries
     # will be sorta "inherited".
-    def initialize(ruby_opts: '', load_gems: true, timeout: nil, retries: nil)
+    def initialize(ruby_opts: '', config: nil)
+      @config           = config || Sudo.configuration
       @proxy            = nil
-      @socket           = Sudo.configuration.socket_path(Process.pid, SecureRandom.hex(8))
+      @socket           = @config.socket_path(Process.pid, SecureRandom.hex(8))
       @sudo_pid         = nil
       @ruby_opts        = ruby_opts
-      @load_gems        = load_gems == true
-      @timeout          = timeout || Sudo.configuration.timeout
-      @retries          = retries || Sudo.configuration.retries
+      @load_gems        = @config.load_gems
+      @timeout          = @config.timeout
+      @retries          = @config.retries
     end
 
     def server_uri; "drbunix:#{@socket}"; end
@@ -129,7 +130,13 @@ module Sudo
     end
 
     def prospective_gems
-      (Gem.loaded_specs.keys - @proxy.loaded_specs.keys)
+      proxy_loaded_specs = @proxy.loaded_specs
+      local_loaded_specs = Gem.loaded_specs.keys
+      (local_loaded_specs - proxy_loaded_specs)
+    rescue => e
+      # Fallback if DRb marshaling fails with newer Bundler versions
+      warn "Warning: Could not compare loaded gems (#{e.class}: #{e.message}). Skipping gem loading."
+      []
     end
 
     # Load needed libraries in the DRb server. Usually you don't need
