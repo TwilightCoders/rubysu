@@ -11,6 +11,7 @@ end
 group :test do
   # Generates coverage stats of specs
   gem 'simplecov'
+  gem 'simplecov_json_formatter'
 
   gem 'rspec'
 end

@@ -33,8 +33,33 @@ jobs:
       - name: Run tests with coverage
         run: bundle exec rspec
 
-      - name: Upload coverage to Qlty
+      - name: Upload coverage artifact (Ruby 3.3 only)
         if: matrix.ruby-version == '3.3'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 1
+
+      - name: Run RuboCop (Ruby 3.3 only)
+        if: matrix.ruby-version == '3.3'
+        run: bundle exec rubocop || true
+        continue-on-error: true
+
+  coverage:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download coverage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+      - name: Upload coverage to Qlty
         uses: qltysh/qlty-action/coverage@v1
         continue-on-error: true
         env:
@@ -44,16 +69,10 @@ jobs:
           files: coverage/coverage.json
 
       - name: Run Qlty code quality checks
-        if: matrix.ruby-version == '3.3'
         run: |
           curl -sSfL https://qlty.sh | sh
           echo "$HOME/.qlty/bin" >> $GITHUB_PATH
           ~/.qlty/bin/qlty check || true
-        continue-on-error: true
-
-      - name: Run RuboCop (Ruby 3.3 only)
-        if: matrix.ruby-version == '3.3'
-        run: bundle exec rubocop || true
         continue-on-error: true
 
   security:
@@ -76,7 +95,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: [test, security]
+    needs: [test, coverage, security]
     if: github.event_name == 'push'
 
     steps:
@@ -133,3 +152,87 @@ jobs:
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "🚀 **Ready to publish!** Use the 'Manual Release' workflow to publish this gem." >> $GITHUB_STEP_SUMMARY
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment: 
+      name: production
+      url: https://github.com/TwilightCoders/rubysu/packages
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Download gem artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: gem-*
+          merge-multiple: true
+
+      - name: Show deployment details
+        run: |
+          echo "## 🚀 Ready to Deploy" >> $GITHUB_STEP_SUMMARY
+          echo "**Gem**: $(ls *.gem)" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Size**: $(ls -lh *.gem | awk '{print $5}')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Manual Approval Required" >> $GITHUB_STEP_SUMMARY
+          echo "This deployment uses the \`production\` environment and can require manual approval." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**To enable manual approval:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Go to **Settings** → **Environments** → **production**" >> $GITHUB_STEP_SUMMARY
+          echo "2. Enable **Required reviewers** and add yourself" >> $GITHUB_STEP_SUMMARY
+          echo "3. Optionally enable **Wait timer** for additional safety" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📖 **See:** [GitHub Docs - Reviewing Deployments](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/reviewing-deployments)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Once configured, you'll get a **Review deployments** button to approve/reject releases." >> $GITHUB_STEP_SUMMARY
+
+      - name: Publish to GitHub Packages
+        id: publish
+        continue-on-error: true
+        run: |
+          mkdir -p ~/.gem
+          cat << EOF > ~/.gem/credentials
+          ---
+          :github: Bearer ${{ secrets.GITHUB_TOKEN }}
+          EOF
+          chmod 600 ~/.gem/credentials
+          
+          # Try to publish, capturing output
+          if gem push --key github --host https://rubygems.pkg.github.com/TwilightCoders *.gem 2>&1 | tee publish_output.log; then
+            echo "success=true" >> $GITHUB_OUTPUT
+            echo "message=Successfully published $(ls *.gem)" >> $GITHUB_OUTPUT
+          else
+            # Check if it's a version conflict (common scenario)
+            if grep -q "already exists" publish_output.log || grep -q "Repushing of gem versions is not allowed" publish_output.log; then
+              echo "success=false" >> $GITHUB_OUTPUT
+              echo "message=Version $(ls *.gem) already exists in GitHub Packages - no action needed" >> $GITHUB_OUTPUT
+            else
+              echo "success=false" >> $GITHUB_OUTPUT
+              echo "message=Failed to publish: $(cat publish_output.log)" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Deployment summary
+        run: |
+          if [ "${{ steps.publish.outputs.success }}" == "true" ]; then
+            echo "## ✅ Deployment Complete" >> $GITHUB_STEP_SUMMARY
+            echo "${{ steps.publish.outputs.message }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ⚠️ Deployment Skipped" >> $GITHUB_STEP_SUMMARY
+            echo "${{ steps.publish.outputs.message }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "This is typically expected when the version already exists." >> $GITHUB_STEP_SUMMARY
+          fi
