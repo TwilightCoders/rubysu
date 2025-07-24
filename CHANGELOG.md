@@ -1,5 +1,28 @@
 # Sudo
 
+<!--
+Emoji Legend:
+🎉 Initial Release   ✨ Feature         🐛 Bug Fix        🔒 Security
+🚀 Compatibility    💥 Breaking        🔧 Internal       ✅ Testing
+📚 Documentation    📄 License         🗑️ Removed
+-->
+
+## `v0.4.0-rc1` _(July 23, 2025)_
+
+- 🔒 **Security**: Fix command injection vulnerabilities in system calls
+- 🔒 **Security**: Use SecureRandom for socket paths instead of predictable object_id
+- ✨ **Feature**: Add configuration system with global defaults
+- ✨ **Feature**: Implement sudo -A flag support for graphical password prompts
+- ✨ **Feature**: Add Sudo.as_root convenience method for better DSL
+- ✨ **Feature**: Add configurable timeouts
+- ✨ **Feature**: Add respond_to_missing? for proper method reflection
+- 💥 **Breaking**: Minimum Ruby version bumped to 2.7+ (EOL compliance)
+- 🔧 **Internal**: Modernize Ruby code with keyword arguments and array-form system calls
+- 🔧 **Internal**: Improve test coverage and add configuration tests
+
+<details>
+<summary>📜 Historical Releases</summary>
+
 ## `v0.3.0` _(July 04, 2023)_
 
 - 🚀 **Compatibility**: Add Ruby 3.2 support
@@ -37,3 +60,5 @@
 - ✨ **Feature**: Unix domain socket communication
 - ✨ **Feature**: Process spawning and management
 - ✨ **Feature**: Basic object proxying through sudo
+
+</details>
