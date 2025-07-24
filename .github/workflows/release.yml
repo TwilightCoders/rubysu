@@ -1,0 +1,150 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Release target'
+        required: true
+        default: 'github'
+        type: choice
+        options:
+        - github
+        - rubygems
+        - both
+      run_id:
+        description: 'CI Run ID to use (optional - leave empty to build from current commit)'
+        required: false
+        type: string
+      version_override:
+        description: 'Version override (optional - leave empty to use VERSION constant)'
+        required: false
+        type: string
+      confirm:
+        description: 'Type "confirm" to proceed with release'
+        required: true
+        type: string
+
+permissions:
+  actions: write
+  contents: read
+  id-token: write
+  packages: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation
+        if: inputs.confirm != 'confirm'
+        run: |
+          echo "::error::You must type 'confirm' to proceed with release"
+          exit 1
+
+  release:
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Download gem artifact
+        if: inputs.run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.run_id }}
+          pattern: gem-*
+          merge-multiple: true
+
+      - name: Build gem from current commit
+        if: inputs.run_id == ''
+        run: |
+          # Override version if specified
+          if [ "${{ inputs.version_override }}" != "" ]; then
+            sed -i "s/VERSION = '\([^']*\)'/VERSION = '${{ inputs.version_override }}'/" lib/sudo/constants.rb
+            echo "Version overridden to: ${{ inputs.version_override }}"
+          fi
+          
+          # Run tests first
+          bundle exec rspec
+          
+          # Build gem
+          gem build sudo.gemspec
+
+      - name: Show gem info and get publish details
+        id: gem_details
+        run: |
+          echo "Available gems:"
+          ls -la *.gem
+          echo ""
+          
+          # Get the gem file (assuming single gem)
+          GEM_FILE=$(ls *.gem | head -1)
+          GEM_VERSION=$(echo $GEM_FILE | sed 's/sudo-\(.*\)\.gem/\1/')
+          
+          echo "gem_file=$GEM_FILE" >> $GITHUB_OUTPUT
+          echo "gem_version=$GEM_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "## 💎 PUBLISHING CONFIRMATION"
+          echo "**Gem Name:** sudo"
+          echo "**Version:** $GEM_VERSION"
+          echo "**File:** $GEM_FILE"
+          echo "**Target:** ${{ inputs.target }}"
+          echo "**Size:** $(ls -lh $GEM_FILE | awk '{print $5}')"
+          echo ""
+          echo "Gem contents preview:"
+          gem contents "$GEM_FILE" | head -10
+          echo "... (and $(gem contents "$GEM_FILE" | wc -l) total files)"
+
+      - name: Confirm publication details
+        run: |
+          echo "## 🚀 READY TO PUBLISH" >> $GITHUB_STEP_SUMMARY
+          echo "- **Gem**: sudo" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.gem_details.outputs.gem_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **File**: ${{ steps.gem_details.outputs.gem_file }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target**: ${{ inputs.target }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Publishing in 5 seconds..." >> $GITHUB_STEP_SUMMARY
+          sleep 5
+
+      - name: Publish to GitHub Packages
+        if: inputs.target == 'github' || inputs.target == 'both'
+        run: |
+          mkdir -p ~/.gem
+          cat << EOF > ~/.gem/credentials
+          ---
+          :github: Bearer ${{ secrets.GITHUB_TOKEN }}
+          EOF
+          chmod 600 ~/.gem/credentials
+          # Temporarily remove allowed_push_host restriction for GitHub Packages
+          sed -i "s/spec.metadata\['allowed_push_host'\].*$//" sudo.gemspec
+          gem build sudo.gemspec
+          gem push --key github --host https://rubygems.pkg.github.com/TwilightCoders *.gem
+
+      - name: Publish to RubyGems.org
+        if: inputs.target == 'rubygems' || inputs.target == 'both'
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+        run: |
+          mkdir -p ~/.gem
+          cat << EOF > ~/.gem/credentials
+          ---
+          :rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}
+          EOF
+          chmod 600 ~/.gem/credentials
+          gem push *.gem
+
+      - name: Create release summary
+        run: |
+          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target**: ${{ inputs.target }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: $(ls *.gem | sed 's/sudo-\(.*\)\.gem/\1/')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
