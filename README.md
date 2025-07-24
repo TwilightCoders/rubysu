@@ -53,7 +53,7 @@ sudo[MyClass].my_class_method
 sudo.stop!
 ```
 
-A convienient utility for working with sudo is to use the `run` method and pass it a block.
+A convenient utility for working with sudo is to use the `run` method and pass it a block.
 Run will automatically start and stop the ruby sudo process around the block.
 
 ```ruby
@@ -66,11 +66,72 @@ end
 # Sockets and processes are closed automatically when the block exits
 ```
 
-Both `Sudo::Wrapper.run` and `Sudo::Wrapper.new` take the same named arguments: `ruby_opts` (default: `''` ) and `load_gems` (default: `true`).
+Both `Sudo::Wrapper.run` and `Sudo::Wrapper.new` accept configuration options:
 
-If you'd like to pass options to the sudo-spawned ruby process, pass them as a string to `ruby_opts`.
+- `ruby_opts` (default: `''`) - Options to pass to the sudo-spawned ruby process
+- Any configuration option can be passed to override global settings (e.g., `timeout`, `load_gems`, `socket_dir`, etc.)
 
-If you'd like to prevent the loading of `gems` currently loaded from the calling program, pass `false` to `load_gems`. This will give your sudo process a unmodifed environment. The only things required via the sudo process are `'drb/drb'`, `'fileutils'`, and of course `'sudo'`.
+If you'd like to prevent the loading of `gems` currently loaded from the calling program, pass `load_gems: false`. This will give your sudo process an unmodified environment. The only things required via the sudo process are `'drb/drb'`, `'fileutils'`, and of course `'sudo'`.
+
+### New DSL (v0.4.0+)
+
+For simple operations, you can use the convenience method:
+
+```ruby
+require 'sudo'
+
+# Accepts the same options as Wrapper.run:
+Sudo.as_root(load_gems: false) do |sudo|
+  sudo[FileUtils].mkdir_p '/root/only/path'
+  sudo[File].write '/etc/config', content
+end
+```
+
+### Configuration (v0.4.0+)
+
+Configure global defaults:
+
+```ruby
+Sudo.configure do |config|
+  config.timeout = 30           # Default: 10 seconds
+  config.socket_dir = '/var/run' # Default: '/tmp'
+  config.sudo_askpass = '/usr/bin/ssh-askpass'  # For graphical password prompts
+  config.load_gems = false      # Default: true - whether to load current gems in sudo process
+end
+```
+
+### Graphical Password Prompts (v0.4.0+)
+
+Set `sudo_askpass` to use graphical password prompts via `sudo -A`:
+
+```ruby
+Sudo.configure do |config|
+  config.sudo_askpass = '/usr/bin/ssh-askpass'
+  # Or use the auto-detected constant for convenience:
+  # config.sudo_askpass = Sudo::ASK_PATH_CMD
+end
+
+# Or per-wrapper:
+Sudo::Wrapper.run(sudo_askpass: '/usr/bin/ssh-askpass') do |sudo|
+  sudo[FileUtils].mkdir_p '/secure/path'
+end
+```
+
+### Timeouts (v0.4.0+)
+
+Configure connection timeouts:
+
+```ruby
+# Global configuration
+Sudo.configure do |config|
+  config.timeout = 15  # Wait up to 15 seconds for sudo process to start
+end
+
+# Or per-wrapper
+Sudo::Wrapper.run(timeout: 5) do |sudo|
+  sudo[SomeClass].time_sensitive_operation
+end
+```
 
 ## Credits
 
@@ -88,7 +149,7 @@ Robert M. Koch ([@threadmetal](https://github.com/threadmetal))
 
 Wolfgang Teuber ([@wteuber](https://github.com/wteuber))
 
-### Other aknowledgements
+### Other acknowledgements
 
 
 Thanks to Tony Arcieri and Brian Candler for suggestions on

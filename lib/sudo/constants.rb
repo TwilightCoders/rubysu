@@ -1,7 +1,7 @@
 require 'pathname'
 
 module Sudo
-  VERSION = '0.3.0'
+  VERSION = '0.4.0'
 
   def self.root
     @root ||= Pathname.new(File.expand_path('../../', __dir__))
