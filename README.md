@@ -1,7 +1,7 @@
 [![Gem Version](https://badge.fury.io/rb/sudo.svg)](https://badge.fury.io/rb/sudo)
 [![CI](https://github.com/TwilightCoders/rubysu/actions/workflows/ci.yml/badge.svg)](https://github.com/TwilightCoders/rubysu/actions/workflows/ci.yml)
 [![Maintainability](https://qlty.sh/badges/e63e40be-4d72-4519-ad77-d4f94803a7b9/maintainability.svg)](https://qlty.sh/TwilightCoders/rubysu)
-[![Test Coverage](https://qlty.sh/badges/e63e40be-4d72-4519-ad77-d4f94803a7b9/test_coverage.svg)](https://qlty.sh/TwilightCoders/rubysu)
+[![Test Coverage](https://qlty.sh/badges/e63e40be-4d72-4519-ad77-d4f94803a7b9/test_coverage.svg)](https://qlty.sh/gh/TwilightCoders/projects/rubysu/metrics/code?sort=coverageRating)
 ![GitHub License](https://img.shields.io/github/license/twilightcoders/rubysu)
 
 # Ruby Sudo
