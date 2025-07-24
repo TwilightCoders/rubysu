@@ -2,6 +2,7 @@
 [![CI](https://github.com/TwilightCoders/rubysu/actions/workflows/ci.yml/badge.svg)](https://github.com/TwilightCoders/rubysu/actions/workflows/ci.yml)
 [![Maintainability](https://qlty.sh/badges/e63e40be-4d72-4519-ad77-d4f94803a7b9/maintainability.svg)](https://qlty.sh/TwilightCoders/rubysu)
 [![Test Coverage](https://qlty.sh/badges/e63e40be-4d72-4519-ad77-d4f94803a7b9/test_coverage.svg)](https://qlty.sh/TwilightCoders/rubysu)
+![GitHub License](https://img.shields.io/github/license/twilightcoders/rubysu)
 
 # Ruby Sudo
 
@@ -139,27 +140,22 @@ end
 
 Guido De Rosa ([@gderosa](http://github.com/gderosa/)).
 
-See LICENSE.
+See ([LICENSE](https://github.com/TwilightCoders/rubysu/blob/main/LICENSE)).
 
 ### Contributors
 
-Dale Stevens ([@voltechs](https://github.com/voltechs))
+- Dale Stevens ([@voltechs](https://github.com/voltechs))
+- Robert M. Koch ([@threadmetal](https://github.com/threadmetal))
+- Wolfgang Teuber ([@wteuber](https://github.com/wteuber))
 
-Robert M. Koch ([@threadmetal](https://github.com/threadmetal))
+### Acknowledgements
 
-Wolfgang Teuber ([@wteuber](https://github.com/wteuber))
-
-### Other acknowledgements
-
-
-Thanks to Tony Arcieri and Brian Candler for suggestions on
-[ruby-talk](http://www.ruby-forum.com/topic/262655).
-
-Initially developed by G. D. while working at [@vemarsas](https://github.com/vemarsas).
+- Thanks to Tony Arcieri and Brian Candler for suggestions on [ruby-talk](http://www.ruby-forum.com/topic/262655).
+- Initially developed by Guido De Rosa while working at [@vemarsas](https://github.com/vemarsas).
 
 ## Contributing
 
-1. Fork it ( https://github.com/TwilightCoders/rubysu/fork )
+1. Fork it ( <https://github.com/TwilightCoders/rubysu/fork> )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
