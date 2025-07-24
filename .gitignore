@@ -33,6 +33,8 @@
 .rvmrc
 .env
 .ruby-version
+.claude
+spec/results.txt
 
 # Compiled source #
 ###################
@@ -56,6 +58,7 @@
 *.rar
 *.tar
 *.zip
+*.gem
 
 # Logs and databases #
 ######################

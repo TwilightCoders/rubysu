@@ -2,13 +2,12 @@ require 'drb/drb'
 require 'sudo/support/kernel'
 require 'sudo/support/process'
 require 'sudo/constants'
+require 'sudo/configuration'
 require 'sudo/system'
 require 'sudo/proxy'
 
 module Sudo
-
   class Wrapper
-
     RuntimeError             = Class.new(RuntimeError)
     NotRunning               = Class.new(RuntimeError)
     SudoFailed               = Class.new(RuntimeError)
@@ -20,18 +19,17 @@ module Sudo
     SudoProcessNotFound      = Class.new(NoValidSudoPid)
 
     class << self
-
       # Yields a new running Sudo::Wrapper, and do all the necessary
       # cleanup when the block exits.
       #
       # ruby_opts:: is passed to Sudo::Wrapper::new .
-      def run(ruby_opts: '', load_gems: true) # :yields: sudo
-        sudo = new(ruby_opts: ruby_opts, load_gems: load_gems).start!
+      def run(ruby_opts: '', **config) # :yields: sudo
+        sudo = new(ruby_opts: ruby_opts, config: Configuration.new(config)).start!
         yield sudo
       rescue Exception => e # Bubble all exceptions...
         raise e
       ensure # and ensure sudo stops
-        sudo.stop!
+        sudo.stop! if sudo
       end
 
       # Do the actual resources clean-up.
@@ -42,18 +40,20 @@ module Sudo
         Sudo::System.kill   h[:pid]
         Sudo::System.unlink h[:socket]
       end
-
     end
 
     # +ruby_opts+ are the command line options to the sudo ruby interpreter;
     # usually you don't need to specify stuff like "-rmygem/mylib", libraries
     # will be sorta "inherited".
-    def initialize(ruby_opts: '', load_gems: true)
+    def initialize(ruby_opts: '', config: nil)
+      @config           = config || Sudo.configuration
       @proxy            = nil
-      @socket           = "/tmp/rubysu-#{Process.pid}-#{object_id}"
+      @socket           = @config.socket_path(Process.pid, SecureRandom.hex(8))
       @sudo_pid         = nil
       @ruby_opts        = ruby_opts
-      @load_gems        = load_gems == true
+      @load_gems        = @config.load_gems
+      @timeout          = @config.timeout
+      @retries          = @config.retries
     end
 
     def server_uri; "drbunix:#{@socket}"; end
@@ -62,17 +62,17 @@ module Sudo
     def start!
       Sudo::System.check
 
-      @sudo_pid = spawn(
-"#{SUDO_CMD} -E #{RUBY_CMD} -I#{LIBDIR} #{@ruby_opts} #{SERVER_SCRIPT} #{@socket} #{Process.uid}"
-      )
+      cmd_args, env = Sudo::System.command(@ruby_opts, @socket)
+      
+      @sudo_pid = spawn(env, *cmd_args)
       Process.detach(@sudo_pid) if @sudo_pid # avoid zombies
       finalizer = Finalizer.new(pid: @sudo_pid, socket: @socket)
       ObjectSpace.define_finalizer(self, finalizer)
 
-      if wait_for(timeout: 1){File.exist? @socket}
+      if wait_for(timeout: @timeout) { socket? }
         @proxy = DRbObject.new_with_uri(server_uri)
       else
-        raise RuntimeError, "Couldn't create DRb socket #{@socket}"
+        raise RuntimeError, "Couldn't create DRb socket #{@socket} within #{@timeout} seconds"
       end
 
       load!
@@ -80,12 +80,12 @@ module Sudo
       self
     end
 
+    def socket?
+      File.exist?(@socket)
+    end
+
     def running?
-      true if (
-        @sudo_pid and Process.exists? @sudo_pid and
-        @socket   and File.exist?    @socket   and
-        @proxy
-      )
+      Process.exists?(@sudo_pid) && socket? && @proxy
     end
 
     # Free the resources opened by this Wrapper: e.g. the sudo-ed
@@ -130,22 +130,31 @@ module Sudo
     end
 
     def prospective_gems
-      (Gem.loaded_specs.keys - @proxy.loaded_specs.keys)
+      proxy_loaded_specs = @proxy.loaded_specs
+      local_loaded_specs = Gem.loaded_specs.keys
+      (local_loaded_specs - proxy_loaded_specs)
+    rescue => e
+      # Fallback if DRb marshaling fails with newer Bundler versions
+      warn "Warning: Could not compare loaded gems (#{e.class}: #{e.message}). Skipping gem loading."
+      []
     end
 
     # Load needed libraries in the DRb server. Usually you don't need
     def load_gems
       load_paths
       prospective_gems.each do |prospect|
-        gem_name = prospect.dup
-        begin
-          loaded = @proxy.proxy(Kernel, :require, gem_name)
-          # puts "Loading Gem: #{gem_name} => #{loaded}"
-        rescue LoadError, NameError => e
-          old_gem_name = gem_name.dup
-          gem_name.gsub!('-', '/')
-          retry if old_gem_name != gem_name
-        end
+        try_gem_variants(prospect)
+      end
+    end
+
+    private
+
+    def try_gem_variants(gem_name)
+      [gem_name, gem_name.gsub('-', '/')].uniq.each do |variant|
+        @proxy.proxy(Kernel, :require, variant)
+        return # Success, stop trying variants
+      rescue LoadError, NameError
+        # Try next variant
       end
     end
 
@@ -157,6 +166,5 @@ module Sudo
         @proxy.add_load_path(path)
       end
     end
-
   end
 end

@@ -1,6 +1,7 @@
-[![Gem Version](https://badge.fury.io/rb/sudo.svg)](https://badge.fury.io/rb/sudo)[![Build Status](https://travis-ci.com/gderosa/rubysu.svg?branch=master)](https://travis-ci.com/gderosa/rubysu)
-[![Maintainability](https://api.codeclimate.com/v1/badges/3fdebfb836bebb531fb3/maintainability)](https://codeclimate.com/github/gderosa/rubysu/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/3fdebfb836bebb531fb3/test_coverage)](https://codeclimate.com/github/gderosa/rubysu/test_coverage)
+[![Gem Version](https://badge.fury.io/rb/sudo.svg)](https://badge.fury.io/rb/sudo)
+[![CI](https://github.com/TwilightCoders/rubysu/actions/workflows/ci.yml/badge.svg)](https://github.com/TwilightCoders/rubysu/actions/workflows/ci.yml)
+[![Maintainability](https://qlty.sh/badges/e63e40be-4d72-4519-ad77-d4f94803a7b9/maintainability.svg)](https://qlty.sh/TwilightCoders/rubysu)
+[![Test Coverage](https://qlty.sh/badges/e63e40be-4d72-4519-ad77-d4f94803a7b9/test_coverage.svg)](https://qlty.sh/TwilightCoders/rubysu)
 
 # Ruby Sudo
 
@@ -8,7 +9,7 @@ Give Ruby objects superuser privileges.
 
 Based on [dRuby](http://ruby-doc.org/stdlib-2.5.3/libdoc/drb/rdoc/DRb.html) and [sudo](http://www.sudo.ws/).
 
-Only tested with [MRI](http://en.wikipedia.org/wiki/Ruby_MRI).
+Tested with [MRI](http://en.wikipedia.org/wiki/Ruby_MRI) Ruby 2.7, 3.0, 3.1, 3.2, and 3.3.
 
 ## Usage
 
@@ -52,7 +53,7 @@ sudo[MyClass].my_class_method
 sudo.stop!
 ```
 
-A convienient utility for working with sudo is to use the `run` method and pass it a block.
+A convenient utility for working with sudo is to use the `run` method and pass it a block.
 Run will automatically start and stop the ruby sudo process around the block.
 
 ```ruby
@@ -65,16 +66,72 @@ end
 # Sockets and processes are closed automatically when the block exits
 ```
 
-Both `Sudo::Wrapper.run` and `Sudo::Wrapper.new` take the same named arguments: `ruby_opts` (default: `''` ) and `load_gems` (default: `true`).
+Both `Sudo::Wrapper.run` and `Sudo::Wrapper.new` accept configuration options:
 
-If you'd like to pass options to the sudo-spawned ruby process, pass them as a string to `ruby_opts`.
+- `ruby_opts` (default: `''`) - Options to pass to the sudo-spawned ruby process
+- Any configuration option can be passed to override global settings (e.g., `timeout`, `load_gems`, `socket_dir`, etc.)
 
-If you'd like to prevent the loading of `gems` currently loaded from the calling program, pass `false` to `load_gems`. This will give your sudo process a unmodifed environment. The only things required via the sudo process are `'drb/drb'`, `'fileutils'`, and of course `'sudo'`.
+If you'd like to prevent the loading of `gems` currently loaded from the calling program, pass `load_gems: false`. This will give your sudo process an unmodified environment. The only things required via the sudo process are `'drb/drb'`, `'fileutils'`, and of course `'sudo'`.
 
-## Todo
+### New DSL (v0.4.0+)
 
-`sudo` has a `-A` option to accept password via an external program (maybe
-graphical): support this feature.
+For simple operations, you can use the convenience method:
+
+```ruby
+require 'sudo'
+
+# Accepts the same options as Wrapper.run:
+Sudo.as_root(load_gems: false) do |sudo|
+  sudo[FileUtils].mkdir_p '/root/only/path'
+  sudo[File].write '/etc/config', content
+end
+```
+
+### Configuration (v0.4.0+)
+
+Configure global defaults:
+
+```ruby
+Sudo.configure do |config|
+  config.timeout = 30           # Default: 10 seconds
+  config.socket_dir = '/var/run' # Default: '/tmp'
+  config.sudo_askpass = '/usr/bin/ssh-askpass'  # For graphical password prompts
+  config.load_gems = false      # Default: true - whether to load current gems in sudo process
+end
+```
+
+### Graphical Password Prompts (v0.4.0+)
+
+Set `sudo_askpass` to use graphical password prompts via `sudo -A`:
+
+```ruby
+Sudo.configure do |config|
+  config.sudo_askpass = '/usr/bin/ssh-askpass'
+  # Or use the auto-detected constant for convenience:
+  # config.sudo_askpass = Sudo::ASK_PATH_CMD
+end
+
+# Or per-wrapper:
+Sudo::Wrapper.run(sudo_askpass: '/usr/bin/ssh-askpass') do |sudo|
+  sudo[FileUtils].mkdir_p '/secure/path'
+end
+```
+
+### Timeouts (v0.4.0+)
+
+Configure connection timeouts:
+
+```ruby
+# Global configuration
+Sudo.configure do |config|
+  config.timeout = 15  # Wait up to 15 seconds for sudo process to start
+end
+
+# Or per-wrapper
+Sudo::Wrapper.run(timeout: 5) do |sudo|
+  sudo[SomeClass].time_sensitive_operation
+end
+```
 
 ## Credits
 
@@ -92,15 +149,17 @@ Robert M. Koch ([@threadmetal](https://github.com/threadmetal))
 
 Wolfgang Teuber ([@wteuber](https://github.com/wteuber))
 
-### Other aknowledgements
-Thanks to Tony Arcieri and Brian Candler for suggestions on 
+### Other acknowledgements
+
+
+Thanks to Tony Arcieri and Brian Candler for suggestions on
 [ruby-talk](http://www.ruby-forum.com/topic/262655).
 
 Initially developed by G. D. while working at [@vemarsas](https://github.com/vemarsas).
 
 ## Contributing
 
-1. Fork it ( https://github.com/gderosa/rubysu/fork )
+1. Fork it ( https://github.com/TwilightCoders/rubysu/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
